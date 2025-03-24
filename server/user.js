@@ -144,7 +144,8 @@ router.post("/login", async (req, res) => {
         status_code: 400
       });
     }
-
+    // const ps = bcrypt(user.password);
+    // console.log(ps)
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({

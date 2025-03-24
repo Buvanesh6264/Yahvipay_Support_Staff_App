@@ -4,16 +4,18 @@ const cors = require("cors");
 
 const userRoutes = require("./user.js");
 const deviceRoutes = require("./device.js");
+const parcellRoutes = require("./parcell.js");
 
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(cors());
 
 app.use("/user", userRoutes);
-app.use("/device", deviceRoutes);
+app.use("/device", deviceRoutes); 
+app.use("/parcel", parcellRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Server is running...");
