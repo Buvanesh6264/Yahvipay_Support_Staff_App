@@ -4,6 +4,7 @@ import { TextInput, Button, Text, Checkbox } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
   const { control, handleSubmit, formState: { errors } } = useForm({
@@ -16,11 +17,14 @@ export default function LoginScreen() {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState(""); 
   const onSubmit = async (data) => {
     setLoading(true);
+    setErrorMessage(""); 
+
     try {
-      const response = await fetch("http://192.168.1.28:5000/user/login", {
+      const response = await fetch("http://192.168.1.55:5000/user/login", {
+      // const response = await fetch("http://192.168.1.4:5000/user/login", {//home
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -29,13 +33,17 @@ export default function LoginScreen() {
       const result = await response.json();
       if (result.status === "success") {
         console.log("Login Successful:", result);
+        await AsyncStorage.setItem("token", result.token);
         navigation.navigate("Home"); 
       } else {
         console.error(result.message);
+        setErrorMessage(result.message); 
       }
     } catch (error) {
       console.error("Login Error:", error);
+      setErrorMessage("Network error. Please try again later."); 
     }
+
     setLoading(false);
   };
 
@@ -92,6 +100,8 @@ export default function LoginScreen() {
         <Text>Show Password</Text>
       </View>
 
+      {errorMessage !== "" && <Text style={styles.error}>{errorMessage}</Text>}
+
       <Button mode="contained" onPress={handleSubmit(onSubmit)} loading={loading} style={styles.button}>
         LOGIN
       </Button>
@@ -115,5 +125,5 @@ const styles = StyleSheet.create({
   button: { backgroundColor: "black", padding: 10, marginTop: 20 },
   link: { textAlign: "center", marginTop: 20, color: "gray" },
   linkBold: { color: "purple", fontWeight: "bold" },
-  error: { color: "red", textAlign: "left", marginBottom: 10 },
+  error: { color: "red", textAlign: "center", marginBottom: 10 }, 
 });

@@ -1,34 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { Appbar, Card, Text } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 
 export default function DeviceScreen() {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchDevices();
   }, []);
-  useEffect(() => {
-    console.log("Updated devices:", devices);
-  }, [devices]);  
+
   const fetchDevices = async () => {
     try {
-      const response = await fetch('http://192.168.1.28:5000/device/alldevices');
+      const response = await fetch('http://192.168.1.55:5000/device/alldevices');
+      // const response = await fetch('http://192.168.1.4:5000/device/alldevices');//home
       const data = await response.json();
-      if (data.devices) {
-        setDevices(data.devices);
-      } else {
-        setDevices([]); 
-      }
+      setDevices(data.devices || []);
     } catch (error) {
       console.error('Error fetching devices:', error);
     } finally {
       setLoading(false);
     }
   };
-  
-  
 
   return (
     <View style={styles.container}>
@@ -36,12 +31,14 @@ export default function DeviceScreen() {
         <Appbar.Content title="Devices" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 
-      {loading ? <ActivityIndicator size="large" color="black" style={styles.loader} /> : (
+      {loading ? (
+        <ActivityIndicator size="large" color="black" style={styles.loader} />
+      ) : (
         <FlatList
           data={devices}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.deviceid}
           renderItem={({ item }) => (
-            <Card style={styles.card}>
+            <Card style={styles.card} onPress={() => navigation.navigate('devicedetail', { deviceid: item.deviceid })}>
               <Card.Cover source={{ uri: item.image }} style={styles.image} />
               <Card.Title title={item.devicename} subtitle={`ID: ${item.deviceid}`} />
               <Card.Content>

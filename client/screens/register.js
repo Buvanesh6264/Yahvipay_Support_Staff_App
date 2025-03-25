@@ -6,32 +6,52 @@ import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
-  const { control, handleSubmit, formState: { errors } } = useForm();
+  const { control, handleSubmit, setError, formState: { errors } } = useForm({
+    defaultValues: {
+      name: "",  
+      phone: "",  
+      email: "",  
+      password: "",  
+    },
+  });
+
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
     setLoading(true);
+
     try {
-      const response = await fetch('http://192.168.1.28:5000/user/register', {
+      const response = await fetch('http://192.168.1.55:5000/user/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       const result = await response.json();
-      console.log(result);
-      navigation.navigate('Login')
+
+      if (response.ok) {
+        navigation.navigate('Login');
+      } else {
+        if (result.errors) {
+          if (result.errors.phone) setError("phone", { type: "server", message: result.errors.phone });
+          if (result.errors.email) setError("email", { type: "server", message: result.errors.email });
+          if (result.errors.password) setError("password", { type: "server", message: result.errors.password });
+        } else {
+          setError("general", { type: "server", message: result.message || "Registration failed. Please try again." });
+        }
+      }
     } catch (error) {
-      console.error(error);
+      setError("general", { type: "server", message: "Network error. Please try again." });
     }
+    
     setLoading(false);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>REGISTER</Text>
-      
+
       <View style={styles.inputContainer}>
         <MaterialIcons name="person" size={24} color="gray" style={styles.icon} />
         <Controller
@@ -50,7 +70,10 @@ export default function RegisterScreen() {
         <Controller
           control={control}
           name="phone"
-          rules={{ required: 'Phone number is required' }}
+          rules={{
+            required: 'Phone number is required',
+            pattern: { value: /^\d{10}$/, message: 'Invalid phone number (10 digits required)' }
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput label="Phone" keyboardType="phone-pad" onBlur={onBlur} onChangeText={onChange} value={value} style={styles.input} />
           )}
@@ -63,7 +86,10 @@ export default function RegisterScreen() {
         <Controller
           control={control}
           name="email"
-          rules={{ required: 'Email is required' }}
+          rules={{
+            required: 'Email is required',
+            pattern: { value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: 'Invalid email format' }
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput label="Email" onBlur={onBlur} onChangeText={onChange} value={value} style={styles.input} />
           )}
@@ -76,7 +102,13 @@ export default function RegisterScreen() {
         <Controller
           control={control}
           name="password"
-          rules={{ required: 'Password is required' }}
+          rules={{
+            required: 'Password is required',
+            pattern: { 
+              value: /^[A-Za-z\d@$!%*?&]{6,}$/, 
+              message: 'Password must be 8+ chars, include uppercase, lowercase, number & special character'
+            }
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput label="Password" secureTextEntry={!showPassword} onBlur={onBlur} onChangeText={onChange} value={value} style={styles.input} />
           )}
@@ -88,6 +120,8 @@ export default function RegisterScreen() {
         <Checkbox status={showPassword ? 'checked' : 'unchecked'} onPress={() => setShowPassword(!showPassword)} />
         <Text>Show Password</Text>
       </View>
+
+      {errors.general && <Text style={styles.error}>{errors.general.message}</Text>}
 
       <Button mode="contained" onPress={handleSubmit(onSubmit)} loading={loading} style={styles.button}>REGISTER</Button>
       
@@ -108,5 +142,5 @@ const styles = StyleSheet.create({
   button: { backgroundColor: 'black', padding: 10, marginTop: 20 },
   link: { textAlign: 'center', marginTop: 20, color: 'gray' },
   linkBold: { color: 'purple', fontWeight: 'bold' },
-  error: { color: 'red', textAlign: 'left', marginBottom: 10 },
+  error: { color: "red", textAlign: "center", marginBottom: 10 }, 
 });

@@ -12,7 +12,7 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Service Dashboard</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+          <TouchableOpacity onPress={() => navigation.navigate("profile")}>
             <MaterialIcons name="account-circle" size={32} color="black" />
           </TouchableOpacity>
         </View>
@@ -33,7 +33,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("devices")}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("adddevice")}>
             <MaterialIcons name="point-of-sale" size={24} color="white" />
             <Text style={styles.actionText}>Add Device</Text>
           </TouchableOpacity>

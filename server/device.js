@@ -27,11 +27,10 @@ function authenticateToken(req, res, next) {
 
 router.post("/adddevice", authenticateToken, async (req, res) => {
   try {
-    const { devicename, status, agentid, userid } = req.body;
+    const { devicename, status, agentid, userid, image } = req.body;
     const errors = [];
 
     const supportid = req.user.supportid;
-
     const validStatuses = ["available", "assigned", "delivered", "damaged"];
 
     if (!devicename) {
@@ -49,6 +48,11 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
         field: "supportid/agentid/userid",
         error: "Required when status is not 'available'",
       });
+    }
+
+    // Validate image URL format (optional)
+    if (image && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(image)) {
+      errors.push({ field: "image", error: "Invalid image URL format" });
     }
 
     if (errors.length > 0) {
@@ -74,25 +78,28 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       supportid: status === "available" ? "" : supportid,
       agentid: status === "available" ? "" : agentid,
       userid: status === "available" ? "" : userid,
+      image: image || "", // Store image URL
     });
 
     res.status(201).json({
       status: "success",
       message: "Device added successfully",
       deviceid: deviceid,
+      image: image || "",
       status_code: 201,
     });
 
   } catch (error) {
     console.error("Device Addition Error:", error);
-    res.status(400).json({
+    res.status(500).json({
       status: "error",
       message: "Internal server error",
       description: "Something went wrong on the server",
-      status_code: 400,
+      status_code: 500,
     });
   }
 });
+
 
 router.get("/alldevices", async (req, res) => {
     try {
@@ -150,76 +157,83 @@ router.get("/:deviceid", async (req, res) => {
 });
 
 router.post("/updatedevice", authenticateToken, async (req, res) => {
-    try {
-        const { deviceid, devicename, status, agentid, userid } = req.body;
-        const errors = [];
-        const supportid = req.user.supportid; 
-        const validStatuses = ["available", "assigned", "delivered", "damaged"];
-        if (!deviceid) {
-            return res.status(400).json({
-                status: "error",
-                message: "Device ID is required",
-                status_code: 400,
-            });
-        }
-        if (status && !validStatuses.includes(status)) {
-            errors.push({ field: "status", error: `Invalid status. Allowed: ${validStatuses.join(", ")}` });
-        }
-        if (status !== "available" && (!supportid || !agentid || !userid)) {
-            errors.push({
-                field: "supportid/agentid/userid",
-                error: "Required when status is not 'available'",
-            });
-        }
-        if (errors.length > 0) {
-            return res.status(400).json({
-                status: "error",
-                message: "Invalid input",
-                description: "Invalid syntax for this request was provided",
-                errors: errors,
-                status_code: 400,
-            });
-        }
+  try {
+    const { deviceid, devicename, status, agentid, userid, image } = req.body;
+    const errors = [];
+    const supportid = req.user.supportid;
+    const validStatuses = ["available", "assigned", "delivered", "damaged"];
 
-        await client.connect();
-        const db = client.db(dbName);
-        const collection = db.collection(deviceCollection);
-        const existingDevice = await collection.findOne({ deviceid });
-        if (!existingDevice) {
-            return res.status(404).json({
-                status: "error",
-                message: "Device not found",
-                status_code: 404,
-            });
-        }
-        const updateData = {};
-        if (devicename) updateData.devicename = devicename;
-        if (status) updateData.status = status;
-        if (status !== "available") {
-            updateData.supportid = supportid;
-            updateData.agentid = agentid;
-            updateData.userid = userid;
-        }
-        await collection.updateOne({ deviceid }, { $set: updateData });
-        const updatedDevice = await collection.findOne({ deviceid });
-        res.status(200).json({
-            status: "success",
-            message: "Device updated successfully",
-            updatedDevice,
-            status_code: 200,
-        });
-    } catch (error) {
-        console.error("Device Update Error:", error);
-        res.status(400).json({
-            status: "error",
-            message: "Internal server error",
-            description: "Something went wrong on the server",
-            status_code: 400,
-        });
-    } finally {
-        await client.close();
+    if (!deviceid) {
+      errors.push({ field: "deviceid", error: "Device ID is required" });
     }
+
+    if (status && !validStatuses.includes(status)) {
+      errors.push({ field: "status", error: `Invalid status. Allowed: ${validStatuses.join(", ")}` });
+    }
+
+    if (status !== "available" && (!supportid || !agentid || !userid)) {
+      errors.push({ field: "supportid/agentid/userid", error: "Required when status is not 'available'" });
+    }
+
+    if (image && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(image)) {
+      errors.push({ field: "image", error: "Invalid image URL format" });
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid input",
+        description: "Invalid syntax for this request was provided",
+        errors: errors,
+        status_code: 400,
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(deviceCollection);
+
+    const existingDevice = await collection.findOne({ deviceid });
+    if (!existingDevice) {
+      return res.status(404).json({
+        status: "error",
+        message: "Device not found",
+        status_code: 404,
+      });
+    }
+
+    const updateData = {};
+    if (devicename) updateData.devicename = devicename;
+    if (status) updateData.status = status;
+    if (image) updateData.image = image;
+    if (status !== "available") {
+      updateData.supportid = supportid;
+      updateData.agentid = agentid;
+      updateData.userid = userid;
+    }
+
+    await collection.updateOne({ deviceid }, { $set: updateData });
+    const updatedDevice = await collection.findOne({ deviceid });
+
+    res.status(200).json({
+      status: "success",
+      message: "Device updated successfully",
+      updatedDevice,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Device Update Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  } finally {
+    await client.close();
+  }
 });
+
 
 
 

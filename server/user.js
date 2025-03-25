@@ -175,5 +175,62 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get("/userdata", async (req, res) => {
+  try {
+    const token = req.header("Authorization");
+
+    if (!token) {
+      return res.status(401).json({
+        status: "error",
+        message: "Access denied. No token provided.",
+        status_code: 401,
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (error) {
+      return res.status(403).json({
+        status: "error",
+        message: "Invalid token",
+        status_code: 403,
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(collectionNameforuser);
+
+    const user = await collection.findOne({ supportid: decoded.supportid });
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+        status_code: 404,
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      user: {
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        supportid: user.supportid,
+      },
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch User Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      status_code: 500,
+    });
+  }
+});
+
 
 module.exports = router;
