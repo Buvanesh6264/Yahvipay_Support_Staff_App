@@ -18,13 +18,14 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); 
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+  console.log(apiUrl)
   const onSubmit = async (data) => {
     setLoading(true);
     setErrorMessage(""); 
 
     try {
-      const response = await fetch("http://192.168.1.55:5000/user/login", {
-      // const response = await fetch("http://192.168.1.4:5000/user/login", {//home
+      const response = await fetch(apiUrl+"/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -34,7 +35,7 @@ export default function LoginScreen() {
       if (result.status === "success") {
         console.log("Login Successful:", result);
         await AsyncStorage.setItem("token", result.token);
-        navigation.navigate("Home"); 
+        navigation.navigate("MainApp");
       } else {
         console.error(result.message);
         setErrorMessage(result.message); 

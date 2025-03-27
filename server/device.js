@@ -10,6 +10,8 @@ const deviceCollection = process.env.DEVICE_COLLECTION;
 const JWT_SECRET = process.env.JWT_SECRET;
 const client = new MongoClient(uri);
 
+
+
 function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -24,6 +26,58 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
+
+const authenticatetoken = (req, res, next) => {
+  const token = req.headers["authorization"];
+  if (!token) {
+    return res.status(401).json({
+      status: "error",
+      message: "Unauthorized",
+      description: "No token provided",
+      status_code: 401,
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({
+        status: "error",
+        message: "Forbidden",
+        description: "Invalid token",
+        status_code: 403,
+      });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+router.get("/userdevices", authenticatetoken, async (req, res) => {
+  try {
+    const supportid = req.user.supportid;
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(deviceCollection);
+
+    const device = await collection.find({ supportid }).toArray();
+
+    res.status(200).json({
+      status: "success",
+      message: "Parcels retrieved successfully",
+      data: device,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Support Parcels Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  }
+});
 
 router.post("/adddevice", authenticateToken, async (req, res) => {
   try {
@@ -50,11 +104,6 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       });
     }
 
-    // Validate image URL format (optional)
-    if (image && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(image)) {
-      errors.push({ field: "image", error: "Invalid image URL format" });
-    }
-
     if (errors.length > 0) {
       return res.status(400).json({
         status: "error",
@@ -78,7 +127,7 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       supportid: status === "available" ? "" : supportid,
       agentid: status === "available" ? "" : agentid,
       userid: status === "available" ? "" : userid,
-      image: image || "", // Store image URL
+      image: image || "", 
     });
 
     res.status(201).json({
@@ -99,7 +148,6 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
     });
   }
 });
-
 
 router.get("/alldevices", async (req, res) => {
     try {
@@ -234,7 +282,31 @@ router.post("/updatedevice", authenticateToken, async (req, res) => {
   }
 });
 
+router.get("/userdevices", authenticateToken, async (req, res) => {
+  try {
+    const supportid = req.user.supportid;
+    const db = client.db(dbName);
+    const collection = db.collection(deviceCollection);
 
+    const devices = await collection.find({ supportid }).toArray();
 
+    res.status(200).json({
+      status: "success",
+      message: "User devices retrieved successfully",
+      data: devices,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch User Devices Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      status_code: 500,
+    });
+  }
+});
 
 module.exports = router;
+
+
+

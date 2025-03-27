@@ -5,6 +5,7 @@ const DeviceDetail = ({ route }) => {
   const { deviceid } = route.params;
   const [device, setDevice] = useState(null);
   const [loading, setLoading] = useState(true);
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
     fetchDeviceDetails();
@@ -12,8 +13,7 @@ const DeviceDetail = ({ route }) => {
 
   const fetchDeviceDetails = async () => {
     try {
-      const response = await fetch(`http://192.168.1.55:5000/device/${deviceid}`);
-      // const response = await fetch(`http://192.168.1.4:5000/device/${deviceid}`);//home
+      const response = await fetch(apiUrl+`/device/${deviceid}`);
       const data = await response.json();
       setDevice(data.device || null);
     } catch (error) {

@@ -1,6 +1,8 @@
 const express = require("express");
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
+
 
 const router = express.Router();
 
@@ -9,12 +11,69 @@ const dbName = process.env.DB_NAME;
 const parcelCollection = process.env.PARCEL_COLLECTION;
 const accessoriesCollection = process.env.ACCESSORIES_COLLECTION;
 const devicesCollection = process.env.DEVICES_COLLECTION;
+const JWT_SECRET = process.env.JWT_SECRET;
+const client = new MongoClient(uri);
+
+
+
 
 const generateParcelNumber = () => {
   const timestamp = Date.now().toString().slice(-6); 
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
   return `PCL${timestamp}${randomSuffix}`; 
 };
+
+const authenticateToken = (req, res, next) => {
+  const token = req.headers["authorization"];
+  if (!token) {
+    return res.status(401).json({
+      status: "error",
+      message: "Unauthorized",
+      description: "No token provided",
+      status_code: 401,
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({
+        status: "error",
+        message: "Forbidden",
+        description: "Invalid token",
+        status_code: 403,
+      });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+router.get("/userparcels", authenticateToken, async (req, res) => {
+  try {
+    const supportid = req.user.supportid;
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(parcelCollection);
+
+    const parcels = await collection.find({ supportid }).toArray();
+
+    res.status(200).json({
+      status: "success",
+      message: "Parcels retrieved successfully",
+      data: parcels,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Support Parcels Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  }
+});
 
 router.post("/addparcel", async (req, res) => {
     try {
@@ -32,7 +91,6 @@ router.post("/addparcel", async (req, res) => {
         reciver,
       } = req.body;
   
-      const client = new MongoClient(uri);
       const errors = [];
   
       const validStatus = ["Pending", "In Transit", "Delivered"];
@@ -188,7 +246,6 @@ router.post("/addparcel", async (req, res) => {
 
 router.get("/allparcels", async (req, res) => {
     try {
-      const client = new MongoClient(uri);
       await client.connect();
       const db = client.db(dbName);
       const collection = db.collection(parcelCollection);
@@ -228,7 +285,6 @@ router.get("/allparcels", async (req, res) => {
 router.get("/:parcelNumber", async (req, res) => {
     try {
         const { parcelNumber } = req.params;
-        const client = new MongoClient(uri);
         
         await client.connect();
         const db = client.db(dbName);
@@ -263,5 +319,8 @@ router.get("/:parcelNumber", async (req, res) => {
         });
     }
 });
+
+
+
 
 module.exports = router;

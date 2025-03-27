@@ -8,6 +8,7 @@ const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -19,7 +20,7 @@ const ProfilePage = () => {
           setLoading(false);
           return;
         }
-        const response = await fetch("http://192.168.1.55:5000/user/userdata", {
+        const response = await fetch(apiUrl+"/user/userdata", {
           method: "GET",
           headers: {
             Authorization: token, 

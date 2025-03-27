@@ -18,12 +18,12 @@ export default function RegisterScreen() {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
   const onSubmit = async (data) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.1.55:5000/user/register', {
+      const response = await fetch(apiUrl+'/user/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

@@ -1,101 +1,151 @@
-import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Alert, ScrollView } from 'react-native';
-import { Appbar, Button, Text } from 'react-native-paper';
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, Picker, Button, Alert, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function AddDeviceScreen({ navigation }) {
-  const [devicename, setDeviceName] = useState('');
-  const [status, setStatus] = useState('available');
-  const [image, setImage] = useState('');
-  const [userId, setUserId] = useState('');
-  const [supportId, setSupportId] = useState('');
-  const [agentId, setAgentId] = useState('');
+const AddDeviceScreen = ({ navigation }) => {
+  const [devicename, setDeviceName] = useState("");
+  const [status, setStatus] = useState("available");
+  const [agentid, setAgentId] = useState("");
+  const [userid, setUserId] = useState("");
+  const [image, setImage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(null);
 
-  const validStatuses = ['available', 'assigned', 'delivered', 'damaged'];
-
-  const validateInputs = () => {
-    if (!devicename.trim()) {
-      Alert.alert('Validation Error', 'Device Name is required!');
-      return false;
-    }
-    if (!validStatuses.includes(status.toLowerCase())) {
-      Alert.alert('Validation Error', `Invalid status. Allowed values: ${validStatuses.join(', ')}`);
-      return false;
-    }
-    if (image && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(image)) {
-      Alert.alert('Validation Error', 'Invalid image URL format!');
-      return false;
-    }
-    if (status !== 'available' && (!userId.trim() || !supportId.trim() || !agentId.trim())) {
-      Alert.alert('Validation Error', 'User ID, Support ID, and Agent ID are required for this status!');
-      return false;
-    }
-    return true;
-  };
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const savedToken = await AsyncStorage.getItem("token");
+        if (!savedToken) {
+          Alert.alert("Error", "No token found. Please log in.");
+          navigation.navigate("Login");
+          return;
+        }
+        setToken(savedToken);
+      } catch (error) {
+        console.error("Error fetching token:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchToken();
+  }, []);
 
   const handleAddDevice = async () => {
-    if (!validateInputs()) return;
+    if (!devicename || !status) {
+      Alert.alert("Error", "Device name and status are required");
+      return;
+    }
+
+    const payload = {
+      devicename,
+      status,
+      agentid: status !== "available" ? agentid : "",
+      userid: status !== "available" ? userid : "",
+      image,
+    };
 
     try {
-      const response = await fetch('http://192.168.1.55:5000/device/adddevice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ devicename, status, image, userId, supportId, agentId }),
+      const response = await fetch("http://192.168.1.45:5000/device/adddevice", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const result = await response.json();
       if (response.ok) {
-        Alert.alert('Success', 'Device added successfully!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+        Alert.alert("Success", "Device added successfully!");
+        navigation.goBack();
       } else {
-        Alert.alert('Error', data.message || 'Failed to add device');
+        Alert.alert("Error", result.message || "Failed to add device");
       }
     } catch (error) {
-      console.error('Error adding device:', error);
-      Alert.alert('Error', 'Something went wrong!');
+      console.error("Error adding device:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
     }
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />;
+  }
 
   return (
     <View style={styles.container}>
-      <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Add Device" titleStyle={styles.navbarTitle} />
-      </Appbar.Header>
+      <Text style={styles.label}>Device Name:</Text>
+      <TextInput value={devicename} onChangeText={setDeviceName} style={styles.input} />
 
-      <ScrollView contentContainerStyle={styles.form}>
-        <Text style={styles.label}>Device Name</Text>
-        <TextInput style={styles.input} placeholder="Enter Device Name" value={devicename} onChangeText={setDeviceName} />
+      <Text style={styles.label}>Status:</Text>
+      <Picker selectedValue={status} onValueChange={(itemValue) => setStatus(itemValue)} style={styles.picker}>
+        <Picker.Item label="Available" value="available" />
+        <Picker.Item label="Assigned" value="assigned" />
+        <Picker.Item label="Delivered" value="delivered" />
+        <Picker.Item label="Damaged" value="damaged" />
+      </Picker>
 
-        <Text style={styles.label}>Status</Text>
-        <TextInput style={styles.input} placeholder="Enter Status" value={status} onChangeText={setStatus} />
+      {status !== "available" && (
+        <>
+          <Text style={styles.label}>Agent ID:</Text>
+          <TextInput value={agentid} onChangeText={setAgentId} style={styles.input} />
 
-        <Text style={styles.label}>Image URL</Text>
-        <TextInput style={styles.input} placeholder="Enter Image URL" value={image} onChangeText={setImage} />
+          <Text style={styles.label}>User ID:</Text>
+          <TextInput value={userid} onChangeText={setUserId} style={styles.input} />
+        </>
+      )}
 
-        {status !== 'available' && (
-          <>
-            <Text style={styles.label}>User ID</Text>
-            <TextInput style={styles.input} placeholder="Enter User ID" value={userId} onChangeText={setUserId} />
+      <Text style={styles.label}>Image URL:</Text>
+      <TextInput value={image} onChangeText={setImage} style={styles.input} />
 
-            <Text style={styles.label}>Support ID</Text>
-            <TextInput style={styles.input} placeholder="Enter Support ID" value={supportId} onChangeText={setSupportId} />
-
-            <Text style={styles.label}>Agent ID</Text>
-            <TextInput style={styles.input} placeholder="Enter Agent ID" value={agentId} onChangeText={setAgentId} />
-          </>
-        )}
-
-        <Button mode="contained" onPress={handleAddDevice} style={styles.button}>Add Device</Button>
-      </ScrollView>
+      <TouchableOpacity style={styles.button} onPress={handleAddDevice}>
+        <Text style={styles.buttonText}>Add Device</Text>
+      </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
-  navbar: { backgroundColor: 'black' },
-  navbarTitle: { color: 'white', fontSize: 20, fontWeight: 'bold' },
-  form: { padding: 20 },
-  label: { fontSize: 16, fontWeight: 'bold', marginBottom: 5 },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 15, borderRadius: 5 },
-  button: { marginTop: 10 },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+    backgroundColor: "#fff",
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 15,
+    backgroundColor: "#fff",
+  },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
+
+export default AddDeviceScreen;

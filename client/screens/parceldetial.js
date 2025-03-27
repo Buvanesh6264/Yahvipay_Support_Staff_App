@@ -7,12 +7,12 @@ const ParcelDetail = ({ route }) => {
   const [parcel, setParcel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
     const fetchParcelDetails = async () => {
       try {
-        const response = await fetch(`http://192.168.1.55:5000/parcel/${parcelNumber}`);
-        // const response = await fetch(`http://192.168.1.4:5000/parcel/${parcelNumber}`);//home
+        const response = await fetch(apiUrl+`/parcel/${parcelNumber}`);
         const data = await response.json();
 
         if (response.ok) {

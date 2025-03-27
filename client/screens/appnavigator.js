@@ -1,34 +1,82 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import Login from "./login";
 import Register from "./register";
 import HomeScreen from "./home";
-import devices from "./devices"
+import Devices from "./devices";
 import AddDeviceScreen from "./adddevice";
 import DeviceDetailScreen from "./devicedetail";
 import ParcelDetail from "./parceldetial";
 import ParcelScreen from "./parcel";
 import ProfilePage from "./profile";
-// import ScanPage from "./scan";
-// import Scanner from "./cam";
-// import ScanDeviceScreen from "./qrscandevicebyid";
-const Stack = createStackNavigator();
+import TrackingScreen from "./tracking";
+import UserDeviceScreen from "./userdevice";
+import UserParcelScreen from "./userparcel";
+// import Scan from "./scan";
+// import Cam from "./cam";
 
-export default function AppNavigator() {
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+
+function DevicesStack() {
   return (
-    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="Register" component={Register} />
-      <Stack.Screen name="Home" component={HomeScreen} /> 
-      <Stack.Screen name="devices" component={devices} /> 
-      <Stack.Screen name="adddevice" component={AddDeviceScreen} /> 
-      {/* <Stack.Screen name="qrdevice" component={ScanDeviceScreen} />  */}
-      <Stack.Screen name="devicedetail" component={DeviceDetailScreen} /> 
-      <Stack.Screen name="parceldetial" component={ParcelDetail} /> 
-      <Stack.Screen name="parcels" component={ParcelScreen} /> 
-      <Stack.Screen name="profile" component={ProfilePage} />
-      {/* <Stack.Screen name="scan" component={ScanPage} />  */}
-      {/* <Stack.Screen name="Scanner" component={Scanner} />  */}
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="devices" component={Devices} />
+      <Stack.Screen name="adddevice" component={AddDeviceScreen} />
+      <Stack.Screen name="devicedetail" component={DeviceDetailScreen} />
+      <Stack.Screen name="userdevices" component={UserDeviceScreen} />
+      {/* <Stack.Screen name="qr" component={Scan} /> */}
+      {/* <Stack.Screen name="scanner" component={Cam} /> */}
     </Stack.Navigator>
   );
 }
+
+function ParcelsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="parcels" component={ParcelScreen} />
+      <Stack.Screen name="parceldetial" component={ParcelDetail} />
+      <Stack.Screen name="TrackPackage" component={TrackingScreen} />
+      <Stack.Screen name="userspakage" component={UserParcelScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function BottomTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === "Home") iconName = "home";
+          else if (route.name === "devices") iconName = "devices";
+          else if (route.name === "parcels") iconName = "local-shipping";
+          else if (route.name === "profile") iconName = "person";
+          return <Icon name={iconName} size={size} color={color} />;
+        },
+        tabBarShowLabel: true,
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="devices" component={DevicesStack} />
+      <Tab.Screen name="parcels" component={ParcelsStack} />
+      <Tab.Screen name="profile" component={ProfilePage} />
+    </Tab.Navigator>
+  );
+}
+
+export default function AppNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="MainApp" component={BottomTabs} />
+    </Stack.Navigator>
+  );
+}
+
+

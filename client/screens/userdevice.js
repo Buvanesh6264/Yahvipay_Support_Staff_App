@@ -2,28 +2,39 @@ import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { Appbar, Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DeviceScreen() {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-
   useEffect(() => {
-    fetchDevices();
+    const fetchParcels = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await fetch(apiUrl+'/device/userdevices', {
+          headers: {
+            Authorization: token,
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            setDevices(data.data);
+        } else {
+          console.error('Error fetching parcels:', data.message);
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchParcels();
   }, []);
 
-  const fetchDevices = async () => {
-    try {
-      const response = await fetch(apiUrl+'/device/alldevices');
-      const data = await response.json();
-      setDevices(data.devices || []);
-    } catch (error) {
-      console.error('Error fetching devices:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <View style={styles.container}>

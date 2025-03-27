@@ -12,9 +12,9 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Service Dashboard</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("profile")}>
+          {/* <TouchableOpacity onPress={() => navigation.navigate("profile")}>
             <MaterialIcons name="account-circle" size={32} color="black" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <View style={styles.statsContainer}>
@@ -33,25 +33,48 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("adddevice")}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {
+              console.log("Navigating to adddevice");
+              navigation.navigate("devices", { screen: "adddevice" });
+            }}
+          >
             <MaterialIcons name="point-of-sale" size={24} color="white" />
             <Text style={styles.actionText}>Add Device</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("parcels")}>
+
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("parcels", { screen: "addparcels" })}>
             <MaterialIcons name="local-shipping" size={24} color="white" />
             <Text style={styles.actionText}>Create Parcel</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.viewContainer}>
-          <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("parcels")}>
+          <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("parcels", { screen: "parcels" })}>
             <FontAwesome5 name="box-open" size={24} color="white" />
             <Text style={styles.viewText}>View Parcels</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices")}>
+          <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "devices" })}>
             <MaterialIcons name="point-of-sale" size={24} color="white" />
             <Text style={styles.viewText}>View Devices</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.viewContainer}>
+          <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("parcels", { screen: "userspakage" })}>
+            <FontAwesome5 name="box-open" size={24} color="white" />
+            <Text style={styles.viewText}>Your Parcels</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "userdevices" })}>
+            <MaterialIcons name="point-of-sale" size={24} color="white" />
+            <Text style={styles.viewText}>Your Devices</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.viewContainer}>
+          <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "qrscan" })}>
+            <FontAwesome5 name="box-open" size={24} color="white" />
+            <Text style={styles.viewText}>qr</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.section}>
