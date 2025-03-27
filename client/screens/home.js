@@ -1,8 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView,SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Card } from "react-native-paper";
-import { MaterialIcons,FontAwesome5 } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -12,9 +12,6 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Service Dashboard</Text>
-          {/* <TouchableOpacity onPress={() => navigation.navigate("profile")}>
-            <MaterialIcons name="account-circle" size={32} color="black" />
-          </TouchableOpacity> */}
         </View>
 
         <View style={styles.statsContainer}>
@@ -33,19 +30,12 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              console.log("Navigating to adddevice");
-              navigation.navigate("devices", { screen: "adddevice" });
-            }}
-          >
-            <MaterialIcons name="point-of-sale" size={24} color="white" />
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("devices", { screen: "adddevice" })}>
+            <MaterialIcons name="add-circle-outline" size={24} color="white" />
             <Text style={styles.actionText}>Add Device</Text>
           </TouchableOpacity>
 
-
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("parcels", { screen: "addparcels" })}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("parcels", { screen: "createparcel" })}>
             <MaterialIcons name="local-shipping" size={24} color="white" />
             <Text style={styles.actionText}>Create Parcel</Text>
           </TouchableOpacity>
@@ -57,29 +47,31 @@ export default function HomeScreen() {
             <Text style={styles.viewText}>View Parcels</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "devices" })}>
-            <MaterialIcons name="point-of-sale" size={24} color="white" />
+            <MaterialIcons name="devices" size={24} color="white" />
             <Text style={styles.viewText}>View Devices</Text>
           </TouchableOpacity>
         </View>
+
         <View style={styles.viewContainer}>
           <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("parcels", { screen: "userspakage" })}>
-            <FontAwesome5 name="box-open" size={24} color="white" />
+            <FontAwesome5 name="user" size={24} color="white" />
             <Text style={styles.viewText}>Your Parcels</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "userdevices" })}>
-            <MaterialIcons name="point-of-sale" size={24} color="white" />
+            <MaterialIcons name="personal-video" size={24} color="white" />
             <Text style={styles.viewText}>Your Devices</Text>
           </TouchableOpacity>
         </View>
+
         <View style={styles.viewContainer}>
           <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "qrscan" })}>
-            <FontAwesome5 name="box-open" size={24} color="white" />
-            <Text style={styles.viewText}>qr</Text>
+            <FontAwesome5 name="qrcode" size={24} color="white" />
+            <Text style={styles.viewText}>Scan QR</Text>
           </TouchableOpacity>
         </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
-          
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -87,22 +79,21 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeContainer: { flex: 1, backgroundColor: "white", paddingTop: 20 },
-  container: { padding: 20, backgroundColor: "white", flexGrow: 1 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: "bold" },
+  safeContainer: { flex: 1, backgroundColor: "#F4F4F4", paddingTop: 20 },
+  container: { padding: 20, backgroundColor: "#FFFFFF", flexGrow: 1 },
+  header: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginBottom: 20 },
+  title: { fontSize: 26, fontWeight: "bold", color: "#333" },
   statsContainer: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
-  statCard: { flex: 1, padding: 15, margin: 5, backgroundColor: "#f3f3f3", alignItems: "center", borderRadius: 10 },
-  statTitle: { fontSize: 14, color: "gray" },
-  statValue: { fontSize: 18, fontWeight: "bold", marginTop: 5 },
+  statCard: { flex: 1, padding: 20, margin: 5, backgroundColor: "#FFFFFF", alignItems: "center", borderRadius: 12, elevation: 3 },
+  statTitle: { fontSize: 14, color: "#666" },
+  statValue: { fontSize: 20, fontWeight: "bold", marginTop: 5, color: "#222" },
   quickActions: { flexDirection: "row", justifyContent: "space-around", marginBottom: 20 },
-  actionButton: { backgroundColor: "black", padding: 15, borderRadius: 10, flexDirection: "row", alignItems: "center" },
-  actionText: { color: "white", marginLeft: 10, fontWeight: "bold" },
+  actionButton: { backgroundColor: "#007AFF", padding: 15, borderRadius: 12, flexDirection: "row", alignItems: "center", justifyContent: "center", width: "45%" },
+  actionText: { color: "white", marginLeft: 10, fontWeight: "bold", fontSize: 16 },
   viewContainer: { flexDirection: "row", justifyContent: "space-around", marginBottom: 20 },
-  viewButton: { backgroundColor: "black", padding: 15, borderRadius: 10, width: "45%", alignItems: "center", flexDirection: "row", justifyContent: "center" },
+  viewButton: { backgroundColor: "#4A4A4A", padding: 15, borderRadius: 12, width: "45%", alignItems: "center", flexDirection: "row", justifyContent: "center" },
   viewText: { fontSize: 16, fontWeight: "bold", color: "white", marginLeft: 10 },
   section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  activityItem: { padding: 10, backgroundColor: "#f3f3f3", marginBottom: 5, borderRadius: 5 },
+  sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
+  activityItem: { padding: 12, backgroundColor: "#EAEAEA", marginBottom: 5, borderRadius: 6 },
 });
-

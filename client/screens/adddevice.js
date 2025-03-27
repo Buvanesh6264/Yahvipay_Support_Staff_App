@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Picker, Button, Alert, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  StatusBar,
+  SafeAreaView,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from "@react-native-picker/picker";
 
 const AddDeviceScreen = ({ navigation }) => {
   const [devicename, setDeviceName] = useState("");
@@ -10,6 +21,7 @@ const AddDeviceScreen = ({ navigation }) => {
   const [image, setImage] = useState("");
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -45,7 +57,7 @@ const AddDeviceScreen = ({ navigation }) => {
     };
 
     try {
-      const response = await fetch("http://192.168.1.45:5000/device/adddevice", {
+      const response = await fetch(`${apiUrl}/device/adddevice`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -68,78 +80,145 @@ const AddDeviceScreen = ({ navigation }) => {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />;
+    return <ActivityIndicator size="large" color="#007bff" style={styles.loader} />;
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Device Name:</Text>
-      <TextInput value={devicename} onChangeText={setDeviceName} style={styles.input} />
+    <SafeAreaView style={styles.safeContainer}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
+      <View style={styles.container}>
+        <Text style={styles.title}>Add New Device</Text>
 
-      <Text style={styles.label}>Status:</Text>
-      <Picker selectedValue={status} onValueChange={(itemValue) => setStatus(itemValue)} style={styles.picker}>
-        <Picker.Item label="Available" value="available" />
-        <Picker.Item label="Assigned" value="assigned" />
-        <Picker.Item label="Delivered" value="delivered" />
-        <Picker.Item label="Damaged" value="damaged" />
-      </Picker>
+        <Text style={styles.label}>Device Name</Text>
+        <TextInput
+          value={devicename}
+          onChangeText={setDeviceName}
+          style={styles.input}
+          placeholder="Enter device name"
+        />
 
-      {status !== "available" && (
-        <>
-          <Text style={styles.label}>Agent ID:</Text>
-          <TextInput value={agentid} onChangeText={setAgentId} style={styles.input} />
+        <Text style={styles.label}>Status</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={status}
+            onValueChange={(itemValue) => setStatus(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Available" value="available" />
+            <Picker.Item label="Assigned" value="assigned" />
+            <Picker.Item label="Delivered" value="delivered" />
+            <Picker.Item label="Damaged" value="damaged" />
+          </Picker>
+        </View>
 
-          <Text style={styles.label}>User ID:</Text>
-          <TextInput value={userid} onChangeText={setUserId} style={styles.input} />
-        </>
-      )}
+        {status !== "available" && (
+          <>
+            <Text style={styles.label}>Agent ID</Text>
+            <TextInput
+              value={agentid}
+              onChangeText={setAgentId}
+              style={styles.input}
+              placeholder="Enter agent ID"
+            />
 
-      <Text style={styles.label}>Image URL:</Text>
-      <TextInput value={image} onChangeText={setImage} style={styles.input} />
+            <Text style={styles.label}>User ID</Text>
+            <TextInput
+              value={userid}
+              onChangeText={setUserId}
+              style={styles.input}
+              placeholder="Enter user ID"
+            />
+          </>
+        )}
 
-      <TouchableOpacity style={styles.button} onPress={handleAddDevice}>
-        <Text style={styles.buttonText}>Add Device</Text>
-      </TouchableOpacity>
-    </View>
+        <Text style={styles.label}>Image URL</Text>
+        <TextInput
+          value={image}
+          onChangeText={setImage}
+          style={styles.input}
+          placeholder="Enter image URL"
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleAddDevice}>
+          <Text style={styles.buttonText}>Add Device</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
+    paddingTop: StatusBar.currentHeight || 0, // Fix for StatusBar hiding content
+  },
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#343a40",
+    textAlign: "center",
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
+    color: "#495057",
     marginBottom: 5,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
+    borderColor: "#ced4da",
+    borderRadius: 10,
+    padding: 14,
     marginBottom: 15,
     backgroundColor: "#fff",
+    fontSize: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ced4da",
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    marginBottom: 15,
   },
   picker: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    marginBottom: 15,
-    backgroundColor: "#fff",
+    fontSize: 16,
   },
   button: {
     backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 5,
+    paddingVertical: 16,
+    borderRadius: 10,
     alignItems: "center",
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
   },
   loader: {
     flex: 1,

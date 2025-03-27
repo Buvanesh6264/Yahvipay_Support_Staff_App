@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const DeviceDetail = ({ route }) => {
   const { deviceid } = route.params;
@@ -13,18 +14,18 @@ const DeviceDetail = ({ route }) => {
 
   const fetchDeviceDetails = async () => {
     try {
-      const response = await fetch(apiUrl+`/device/${deviceid}`);
+      const response = await fetch(`${apiUrl}/device/${deviceid}`);
       const data = await response.json();
       setDevice(data.device || null);
     } catch (error) {
-      console.error('Error fetching device details:', error);
+      console.error("Error fetching device details:", error);
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="black" style={styles.loader} />;
+    return <ActivityIndicator size="large" color="#007bff" style={styles.loader} />;
   }
 
   if (!device) {
@@ -32,80 +33,145 @@ const DeviceDetail = ({ route }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <Image source={{ uri: device.image }} style={styles.image} />
+    <SafeAreaView style={styles.safeContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Image source={{ uri: device.image }} style={styles.image} />
 
-      <View style={styles.details}>
-        <Text style={styles.deviceName}>{device.devicename}</Text>
-        <Text style={styles.info}>Device ID: {device.deviceid}</Text>
-        <Text style={styles.status(device.status)}>Status: {device.status}</Text>
-        <Text style={styles.info}>Support ID: {device.supportid || 'N/A'}</Text>
-        <Text style={styles.info}>Agent ID: {device.agentid || 'N/A'}</Text>
-        <Text style={styles.info}>User ID: {device.userid || 'N/A'}</Text>
-      </View>
+          <View style={styles.detailsCard}>
+            <Text style={styles.deviceName}>{device.devicename}</Text>
 
-      <TouchableOpacity style={styles.button} onPress={() => console.log('Update Device')}>
-        <Text style={styles.buttonText}>Update</Text>
-      </TouchableOpacity>
-    </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Device ID:</Text>
+              <Text style={styles.value}>{device.deviceid}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Status:</Text>
+              <Text style={[styles.status, styles[device.status]]}>{device.status.toUpperCase()}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Support ID:</Text>
+              <Text style={styles.value}>{device.supportid || "N/A"}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Agent ID:</Text>
+              <Text style={styles.value}>{device.agentid || "N/A"}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>User ID:</Text>
+              <Text style={styles.value}>{device.userid || "N/A"}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.button} onPress={() => console.log("Update Device")}>
+            <Text style={styles.buttonText}>Update Device</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F4F7FC",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  container: {
+    width: "90%",
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    paddingBottom: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+    elevation: 5,
   },
   image: {
-    width: '100%',
-    height: 250,
-    resizeMode: 'cover',
-    marginBottom: 20,
+    width: "100%",
+    height: 220,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    resizeMode: "cover",
   },
-  details: {
-    width: '100%',
-    paddingHorizontal: 10,
+  detailsCard: {
+    width: "100%",
+    padding: 20,
   },
   deviceName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  info: {
-    fontSize: 18,
-    color: '#555',
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  status: (status) => ({
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: status === 'available' ? 'green' : status === 'assigned' ? 'orange' : 'red',
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
     marginBottom: 15,
-    textAlign: 'center',
-  }),
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+    paddingVertical: 10,
+  },
+  label: {
+    fontSize: 16,
+    color: "#555",
+    fontWeight: "600",
+  },
+  value: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "500",
+  },
+  status: {
+    fontSize: 16,
+    fontWeight: "700",
+    textTransform: "capitalize",
+  },
+  available: {
+    color: "green",
+  },
+  assigned: {
+    color: "orange",
+  },
+  delivered: {
+    color: "blue",
+  },
+  damaged: {
+    color: "red",
+  },
   button: {
-    marginTop: 30,
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     paddingVertical: 12,
-    paddingHorizontal: 50,
+    paddingHorizontal: 30,
     borderRadius: 8,
+    marginTop: 15,
   },
   buttonText: {
     fontSize: 18,
-    color: '#ffffff',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "#ffffff",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   noData: {
     fontSize: 18,
-    color: 'red',
-    textAlign: 'center',
+    color: "red",
+    textAlign: "center",
     marginTop: 50,
   },
 });

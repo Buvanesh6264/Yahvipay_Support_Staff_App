@@ -14,8 +14,9 @@ import ProfilePage from "./profile";
 import TrackingScreen from "./tracking";
 import UserDeviceScreen from "./userdevice";
 import UserParcelScreen from "./userparcel";
-// import Scan from "./scan";
-// import Cam from "./cam";
+import CreateParcelScreen from "./createparcel";
+import Scanner from "./scanner";
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,8 +29,7 @@ function DevicesStack() {
       <Stack.Screen name="adddevice" component={AddDeviceScreen} />
       <Stack.Screen name="devicedetail" component={DeviceDetailScreen} />
       <Stack.Screen name="userdevices" component={UserDeviceScreen} />
-      {/* <Stack.Screen name="qr" component={Scan} /> */}
-      {/* <Stack.Screen name="scanner" component={Cam} /> */}
+      <Stack.Screen name="qrscan" component={Scanner} />
     </Stack.Navigator>
   );
 }
@@ -41,6 +41,7 @@ function ParcelsStack() {
       <Stack.Screen name="parceldetial" component={ParcelDetail} />
       <Stack.Screen name="TrackPackage" component={TrackingScreen} />
       <Stack.Screen name="userspakage" component={UserParcelScreen} />
+      <Stack.Screen name="createparcel" component={CreateParcelScreen} />
     </Stack.Navigator>
   );
 }

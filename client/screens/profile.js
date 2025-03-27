@@ -71,6 +71,8 @@ const ProfilePage = () => {
           <Text style={styles.info}>{user.phone}</Text>
           <Text style={styles.label}>Email:</Text>
           <Text style={styles.info}>{user.email}</Text>
+          <Text style={styles.label}>Support ID:</Text>
+          <Text style={styles.info}>{user.supportid}</Text>
         </View>
 
         {/* <TouchableOpacity style={styles.button} onPress={() => console.log("Edit Profile")}>

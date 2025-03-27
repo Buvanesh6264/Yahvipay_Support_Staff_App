@@ -75,174 +75,111 @@ router.get("/userparcels", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/addparcel", async (req, res) => {
-    try {
+router.post("/addparcel", authenticateToken, async (req, res) => {
+  try {
       const {
-        deviceIds,
-        accessories,
-        status,
-        pickupLocation,
-        destination,
-        trackingHistory,
-        agentid,
-        supportid,
-        userid,
-        sender,
-        reciver,
+          deviceid,
+          accessories,
+          pickupLocation,
+          destination,
+          agentid,
+          userid,
+          sender,
+          reciver
       } = req.body;
-  
+
+      const supportid = req.user.supportid; 
+
       const errors = [];
-  
-      const validStatus = ["Pending", "In Transit", "Delivered"];
-  
-      if (!deviceIds || !Array.isArray(deviceIds) || deviceIds.length === 0) {
-        errors.push({ field: "deviceIds", error: "At least one device ID is required" });
+
+      if (!deviceid) {
+          errors.push({ field: "deviceid", error: "Device ID is required" });
       }
-  
+
       if (accessories && !Array.isArray(accessories)) {
-        errors.push({ field: "accessories", error: "Accessories must be an array" });
+          errors.push({ field: "accessories", error: "Accessories must be an array" });
       }
-  
-      if (!status) {
-        errors.push({ field: "status", error: "This field is required" });
-      } else if (!validStatus.includes(status)) {
-        errors.push({
-          field: "status",
-          error: `Invalid status. Allowed values: ${validStatus.join(", ")}`,
-        });
-      }
-  
+
       if (!pickupLocation) {
-        errors.push({ field: "pickupLocation", error: "This field is required" });
+          errors.push({ field: "pickupLocation", error: "Pickup location is required" });
       }
-  
+
       if (!destination) {
-        errors.push({ field: "destination", error: "This field is required" });
+          errors.push({ field: "destination", error: "Destination is required" });
       }
-  
+
       if (!agentid) {
-        errors.push({ field: "agentid", error: "This field is required" });
+          errors.push({ field: "agentid", error: "Agent ID is required" });
       }
-  
+
       if (!supportid) {
-        errors.push({ field: "supportid", error: "This field is required" });
+          errors.push({ field: "supportid", error: "Support ID is required" });
       }
-  
+
       if (!userid) {
-        errors.push({ field: "userid", error: "This field is required" });
+          errors.push({ field: "userid", error: "User ID is required" });
       }
-  
+
       if (!sender) {
-        errors.push({ field: "sender", error: "This field is required" });
+          errors.push({ field: "sender", error: "Sender is required" });
       }
-  
+
       if (!reciver) {
-        errors.push({ field: "reciver", error: "This field is required" });
+          errors.push({ field: "reciver", error: "Receiver is required" });
       }
-  
-      if (trackingHistory && !Array.isArray(trackingHistory)) {
-        errors.push({ field: "trackingHistory", error: "Tracking history must be an array" });
-      }
-  
+
       if (errors.length > 0) {
-        return res.status(400).json({
-          status: "error",
-          message: "Invalid input",
-          description: "Invalid syntax for this request",
-          errors: errors,
-          status_code: 400,
-        });
+          return res.status(400).json({
+              status: "error",
+              message: "Invalid input",
+              errors,
+              status_code: 400
+          });
       }
-  
+
       await client.connect();
       const db = client.db(dbName);
       const parcelCol = db.collection(parcelCollection);
-      const accessoriesCol = db.collection(accessoriesCollection);
-      const devicesCol = db.collection(devicesCollection);
-  
-      if (sender === "yavhipay") {
-        const deviceData = await devicesCol.find({ deviceid: { $in: deviceIds }, available: true }).toArray();
-        const accessoriesData = await accessoriesCol.find({ accessoriesid: { $in: accessories }, quantity: { $gt: 0 } }).toArray();
-  
-        const unavailableDevices = deviceIds.filter(id => !deviceData.some(device => device.deviceid === id));
-        const unavailableAccessories = accessories.filter(id => !accessoriesData.some(acc => acc.accessoriesid === id));
-  
-        if (unavailableDevices.length > 0) {
-          return res.status(400).json({
-            status: "error",
-            message: "Unavailable Devices",
-            description: `The following devices are not available: ${unavailableDevices.join(", ")}`,
-            status_code: 400,
-          });
-        }
-  
-        if (unavailableAccessories.length > 0) {
-          return res.status(400).json({
-            status: "error",
-            message: "Unavailable Accessories",
-            description: `The following accessories are not in stock: ${unavailableAccessories.join(", ")}`,
-            status_code: 400,
-          });
-        }
-      }
-  
-      if (reciver === "yavhipay") {
-        const damagedDevices = await devicesCol.find({ deviceid: { $in: deviceIds }, status: "damaged" }).toArray();
-        const invalidDevices = deviceIds.filter(id => !damagedDevices.some(device => device.deviceid === id));
-  
-        if (invalidDevices.length > 0) {
-          return res.status(400).json({
-            status: "error",
-            message: "Only Damaged Devices Allowed",
-            description: `The following devices are not marked as damaged: ${invalidDevices.join(", ")}`,
-            status_code: 400,
-          });
-        }
-      }
-  
+
       let parcelNumber;
       let parcelExists;
       do {
-        parcelNumber = generateParcelNumber();
-        parcelExists = await parcelCol.findOne({ parcelNumber });
+          parcelNumber = generateParcelNumber();
+          parcelExists = await parcelCol.findOne({ parcelNumber });
       } while (parcelExists);
-  
+
       const newParcel = {
-        parcelNumber,
-        deviceIds,
-        accessories: accessories || [],
-        status,
-        pickupLocation,
-        destination,
-        trackingHistory: trackingHistory || [],
-        agentid,
-        supportid,
-        userid,
-        sender,
-        reciver,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+          parcelNumber,
+          deviceid,
+          accessories: accessories || [],
+          pickupLocation,
+          destination,
+          agentid,
+          supportid,
+          userid,
+          sender,
+          reciver
       };
-  
+
       await parcelCol.insertOne(newParcel);
-  
+
       res.status(201).json({
-        status: "success",
-        message: "Parcel created successfully",
-        parcel: newParcel,
-        status_code: 201,
+          status: "success",
+          message: "Parcel created successfully",
+          parcel: newParcel,
+          status_code: 201
       });
-  
-    } catch (error) {
+  } catch (error) {
       console.error("Parcel Creation Error:", error);
       res.status(500).json({
-        status: "error",
-        message: "Internal server error",
-        description: "Something went wrong on the server",
-        status_code: 500,
+          status: "error",
+          message: "Internal server error",
+          description: "Something went wrong on the server",
+          status_code: 500
       });
-    }
+  }
 });
+
 
 router.get("/allparcels", async (req, res) => {
     try {
