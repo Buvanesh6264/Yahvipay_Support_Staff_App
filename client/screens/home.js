@@ -27,15 +27,18 @@ export default function HomeScreen() {
           //   },
           // }
         )
+        const tracking = await fetch(`${apiUrl}/tracking/trackingcount`);
+
   
         const deviceData = await deviceRes.json();
         const parcelData = await parcelRes.json();
+        const trackingData = await tracking.json();
         console.log(`this is${deviceData.data}`)
         console.log(`this parcel${parcelData.data}`)
         if (deviceRes.ok && parcelRes.ok) {
           setDeviceCount(deviceData.data || 0);
           setParcelCount(parcelData.data || 0);
-          // setPendingDeliveries(parcelData.pendingDeliveries || 0); 
+          setPendingDeliveries(trackingData.data || 0); 
         } else {
           console.error("Error fetching counts:", deviceData.message, parcelData.message);
         }

@@ -88,107 +88,6 @@ router.get("/userparcels", authenticateToken, async (req, res) => {
   }
 });
 
-// router.post("/addparcel", authenticateToken1, async (req, res) => {
-//   try {
-//     const { pickupLocation, destination, agentid, userid, devices, accessories, reciver, sender } = req.body;
-//     const supportid = req.supportid.id;
-
-//     if (!pickupLocation || !destination || !devices || devices.length !== 0) {
-//       return res.status(400).json({
-//         status: "error",
-//         message: "Pickup location, destination, device IDs are required",
-//         status_code: 400,
-//       });
-//     }
-
-//     await client.connect();
-//     const db = client.db(dbName);
-//     const Device = db.collection(devicesCollection);
-//     const Accessory = db.collection(accessoriesCollection);
-//     const Parcel = db.collection(parcelCollection);
-
-//     for (let deviceid of devices) {
-//       const device = await Device.findOne({ deviceid });
-//       if (!device) {
-//         return res.status(400).json({
-//           status: "error",
-//           message: `Device ${deviceid} not found`,
-//           status_code: 400,
-//         });
-//       }
-//       if (device.status !== "available") {
-//         return res.status(400).json({
-//           status: "error",
-//           message: `Device ${deviceid} is not available`,
-//           status_code: 400,
-//         });
-//       }
-//     }
-
-//     for (let accessoryId of accessories) {
-//       const accessory = await Accessory.findOne({ accessoryid: accessoryId });
-//       if (!accessory || accessory.quantity <= 0) {
-//         return res.status(400).json({
-//           status: "error",
-//           message: `Accessory ${accessoryId} is out of stock`,
-//           status_code: 400,
-//         });
-//       }
-//     }
-
-//     const parcelNumber = generateParcelNumber();
-//     await Parcel.insertOne({
-//       parcelNumber,
-//       pickupLocation,
-//       destination,
-//       agentid,
-//       supportid,
-//       userid,
-//       devices,
-//       accessories,
-//       reciver,
-//       sender,
-//     });
-
-//     for (let deviceid of devices) {
-//       await Device.updateOne(
-//         { deviceid },
-//         {
-//           $set: {
-//             status: "assigned",
-//             supportid,
-//             agentid,
-//             userid,
-//             inventory: false,
-//           },
-//         }
-//       );
-//     }
-
-//     for (let accessoryId of accessories) {
-//       await Accessory.updateOne(
-//         { accessoryid: accessoryId },
-//         { $inc: { quantity: -1 } }
-//       );
-//     }
-
-//     res.status(201).json({
-//       status: "success",
-//       message: "Parcel added successfully",
-//       status_code: 201,
-//     });
-//   } catch (error) {
-//     console.error("Parcel Addition Error:", error);
-//     res.status(500).json({
-//       status: "error",
-//       message: "Internal server error",
-//       status_code: 500,
-//     });
-//   }finally {
-//     await client.close();
-//   }
-// });
-
 
 router.get("/allparcels", async (req, res) => {
     try {
@@ -261,6 +160,7 @@ router.get("/parcelcount", async (req, res) => {
       await client.close();
     }
   });
+  
   router.get("/:parcelNumber", async (req, res) => {
     try {
         const { parcelNumber } = req.params;

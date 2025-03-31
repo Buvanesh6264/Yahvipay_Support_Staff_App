@@ -12,20 +12,24 @@ const client = new MongoClient(uri);
 
 
 
-function authenticateToken(req, res, next) {
+const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  console.log("Received Auth Header:", authHeader); 
 
-  if (!token) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized: No token provided" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Forbidden: Invalid token" });
-    req.user = user; 
+  const token = authHeader.split(" ")[1]; 
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Forbidden: Invalid token" });
+    }
+    req.user = user;
     next();
   });
-}
+};
+
 
 const authenticatetoken = (req, res, next) => {
   const token = req.headers["authorization"];
@@ -52,38 +56,47 @@ const authenticatetoken = (req, res, next) => {
   });
 };
 
-router.get("/userdevices", authenticatetoken, async (req, res) => {
+router.get("/userdevices", authenticateToken, async (req, res) => {
   try {
     const supportid = req.user.supportid;
+    const { status } = req.query;
 
     await client.connect();
     const db = client.db(dbName);
     const collection = db.collection(deviceCollection);
 
-    const device = await collection.find({ supportid }).toArray();
+    const query = { supportid };
+    if (status) {
+      query.status = { $regex: new RegExp(`^${status}$`, "i") };
+    }
+
+    const devices = await collection.find(query).toArray();
 
     res.status(200).json({
       status: "success",
-      message: "Parcels retrieved successfully",
-      data: device,
+      message: "Devices retrieved successfully",
+      data: devices,
+      total_devices: devices.length,
       status_code: 200,
     });
   } catch (error) {
-    console.error("Fetch Support Parcels Error:", error);
+    console.error("Fetch Support Devices Error:", error);
     res.status(500).json({
       status: "error",
       message: "Internal server error",
       description: "Something went wrong on the server",
       status_code: 500,
     });
-  }finally {
+  } finally {
     await client.close();
   }
 });
 
+
 router.post("/adddevice", authenticateToken, async (req, res) => {
   try {
     const { devicename, status, agentid, image, deviceid } = req.body;
+    const supportid = req.user.supportid;
 
     if (!devicename || !status || !deviceid) {
       return res.status(400).json({
@@ -111,6 +124,7 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       devicename,
       deviceid,
       status,
+      supportid,
       agentid: status === "available" ? "" : agentid,
       inventory,
       image: image || "",
@@ -135,26 +149,29 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
 });
 
 router.get("/alldevices", async (req, res) => {
-    try {
+  try {
       await client.connect();
       const db = client.db(dbName);
       const collection = db.collection(deviceCollection);
-  
-      const devices = await collection.find().toArray();
-  
+
+      const { status } = req.query;
+      const query = status ? { status: { $regex: new RegExp(`^${status}$`, "i") } } : {}; 
+
+      const devices = await collection.find(query).toArray();
+
       res.status(200).json({
-        status: "success",
-        message: "Devices retrieved successfully",
-        total_devices: devices.length,
-        devices,
-        status_code: 200,
+          status: "success",
+          message: "Devices retrieved successfully",
+          total_devices: devices.length,
+          devices,
+          status_code: 200,
       });
-    } catch (error) {
+  } catch (error) {
       console.error("Fetch Devices Error:", error);
       res.status(500).json({ error: "Internal server error" });
-    } finally {
+  } finally {
       await client.close();
-    }
+  }
 });
 
 

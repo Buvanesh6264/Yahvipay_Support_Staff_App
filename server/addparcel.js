@@ -23,7 +23,7 @@ const generateParcelNumber = () => {
 
 const authenticatetoken = (req, res, next) => {
   const token = req.headers["authorization"];
-  if (!token) {
+  if (!token){
     return res.status(401).json({
       status: "error",
       message: "Unauthorized",
@@ -49,7 +49,7 @@ const authenticatetoken = (req, res, next) => {
 router.post("/addparcel", authenticatetoken, async (req, res) => {
     try {
         const { pickupLocation, destination, agentid, devices, accessories, reciver, sender } = req.body;
-        const supportid = req.user.id; 
+        const supportid = req.user.supportid;
         console.log(req.body,'data')
         console.log(req.user.id,'userid')
         if (!pickupLocation) {

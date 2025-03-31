@@ -3,11 +3,11 @@ const { MongoClient } = require("mongodb");
 require("dotenv").config();
 
 const router = express.Router();
-
 const uri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
 const parcelCollection = process.env.PARCEL_COLLECTION;
 const trackingCollection = process.env.TRACKING_COLLECTION;
+const client = new MongoClient(uri);
 
 const calculateExpectedDelivery = (status, pickupDate) => {
   let expectedDays = 5; 
@@ -28,7 +28,6 @@ router.post("/generate", async (req, res) => {
       return res.status(400).json({ status: "error", message: "Parcel number is required." });
     }
 
-    const client = new MongoClient(uri);
     await client.connect();
     const db = client.db(dbName);
     const parcelCol = db.collection(parcelCollection);
@@ -74,10 +73,41 @@ router.post("/generate", async (req, res) => {
       data: trackingData
     });
 
-    client.close();
   } catch (error) {
     console.error("Tracking API Error:", error);
     res.status(500).json({ status: "error", message: "Internal server error." });
+  }finally {
+    await client.close();
+  }
+});
+
+
+router.get("/trackingcount", async (req, res) => {
+  try {
+    // const supportid = req.user.supportid;
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(trackingCollection);
+    const parcels = await collection.find({ status: { $ne: "Out for Delivery" } }).toArray();
+    const count =parcels.length;
+    console.log(count)
+    res.status(200).json({
+      status: "success",
+      message: "Parcels count retrieved successfully",
+      data: count,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Support Parcels Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  }finally {
+    await client.close();
   }
 });
 

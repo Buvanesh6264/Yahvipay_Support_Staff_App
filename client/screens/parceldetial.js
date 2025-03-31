@@ -65,7 +65,7 @@ const ParcelDetail = ({ route }) => {
               <Text style={styles.label}>Parcel Number:</Text>
               <Text style={styles.value}>{parcel.parcelNumber}</Text>
             </View>
-            
+
             <View style={styles.detailRow}>
               <Text style={styles.label}>Pickup Location:</Text>
               <Text style={styles.value}>{parcel.pickupLocation}</Text>
@@ -85,20 +85,28 @@ const ParcelDetail = ({ route }) => {
               <Text style={styles.label}>Support ID:</Text>
               <Text style={styles.value}>{parcel.supportid || "N/A"}</Text>
             </View>
-            
             <View style={styles.detailRow}>
-              <Text style={styles.label}>Device ID:</Text>
-              <Text style={styles.value}>{parcel.deviceid || "N/A"}</Text>
-            </View>
+                <Text style={styles.label}>Devices:</Text>
+                <Text style={styles.value}>
+                  {parcel.devices && parcel.devices.length > 0 ? parcel.devices.join(", ") : "None"}
+                </Text>
+              </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Accessories:</Text>
-              <Text style={styles.value}>
-                {parcel.accessories.length > 0
-                  ? parcel.accessories.join(", ")
-                  : "None"}
-              </Text>
-            </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Accessories:</Text>
+                <View style={styles.valueColumn}>
+                  {parcel.accessories && parcel.accessories.length > 0 ? (
+                    parcel.accessories.map((acc, index) => (
+                      <Text key={index} style={styles.value}>
+                        {acc.id} (Qty: {acc.quantity})
+                      </Text>
+                    ))
+                  ) : (
+                    <Text style={styles.value}>None</Text>
+                  )}
+                </View>
+              </View>
+
 
             <View style={styles.detailRow}>
               <Text style={styles.label}>Receiver:</Text>
@@ -111,13 +119,6 @@ const ParcelDetail = ({ route }) => {
             </View>
           </Card.Content>
         </Card>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => console.log("Update Parcel")}
-        >
-          <Text style={styles.buttonText}>Update Parcel</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -172,17 +173,10 @@ const styles = StyleSheet.create({
     flex: 2,
     textAlign: "right",
   },
-  status: (status) => ({
-    fontWeight: "700",
-    color:
-      status === "delivered"
-        ? "green"
-        : status === "in transit"
-        ? "orange"
-        : status === "pending"
-        ? "red"
-        : "#333",
-  }),
+  valueColumn: {
+    flex: 2,
+    alignItems: "flex-end",
+  },
   error: {
     fontSize: 18,
     color: "red",
