@@ -13,14 +13,14 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 
-const AddDeviceScreen = ({ navigation }) => {
+const AddDeviceScreen = ({ navigation, route }) => {
   const [devicename, setDeviceName] = useState("");
   const [status, setStatus] = useState("available");
   const [agentid, setAgentId] = useState("");
-  const [userid, setUserId] = useState("");
   const [image, setImage] = useState("");
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
+  const [productId, setProductId] = useState("");
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -41,21 +41,27 @@ const AddDeviceScreen = ({ navigation }) => {
     };
     fetchToken();
   }, []);
+  useEffect(() => {
+    if (route?.params?.scannedId) {
+      setProductId(route.params.scannedId);
+    }
+  }, [route?.params?.scannedId]);
+  
 
   const handleAddDevice = async () => {
-    if (!devicename || !status) {
-      Alert.alert("Error", "Device name and status are required");
+    if (!devicename || !status || !productId) {
+      Alert.alert("Error", "Device name, status, and scanned ID are required");
       return;
     }
-
+  
     const payload = {
       devicename,
       status,
+      deviceid: productId, 
       agentid: status !== "available" ? agentid : "",
-      userid: status !== "available" ? userid : "",
       image,
     };
-
+  
     try {
       const response = await fetch(`${apiUrl}/device/adddevice`, {
         method: "POST",
@@ -65,8 +71,9 @@ const AddDeviceScreen = ({ navigation }) => {
         },
         body: JSON.stringify(payload),
       });
-
+  
       const result = await response.json();
+  
       if (response.ok) {
         Alert.alert("Success", "Device added successfully!");
         navigation.goBack();
@@ -78,6 +85,7 @@ const AddDeviceScreen = ({ navigation }) => {
       Alert.alert("Error", "Something went wrong. Please try again.");
     }
   };
+  
 
   if (loading) {
     return <ActivityIndicator size="large" color="#007bff" style={styles.loader} />;
@@ -120,14 +128,6 @@ const AddDeviceScreen = ({ navigation }) => {
               style={styles.input}
               placeholder="Enter agent ID"
             />
-
-            <Text style={styles.label}>User ID</Text>
-            <TextInput
-              value={userid}
-              onChangeText={setUserId}
-              style={styles.input}
-              placeholder="Enter user ID"
-            />
           </>
         )}
 
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-    paddingTop: StatusBar.currentHeight || 0, // Fix for StatusBar hiding content
+    paddingTop: StatusBar.currentHeight || 0,
   },
   container: {
     flex: 1,

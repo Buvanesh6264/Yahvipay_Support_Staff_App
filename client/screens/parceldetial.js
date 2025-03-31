@@ -85,12 +85,7 @@ const ParcelDetail = ({ route }) => {
               <Text style={styles.label}>Support ID:</Text>
               <Text style={styles.value}>{parcel.supportid || "N/A"}</Text>
             </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>User ID:</Text>
-              <Text style={styles.value}>{parcel.userid || "N/A"}</Text>
-            </View>
-
+            
             <View style={styles.detailRow}>
               <Text style={styles.label}>Device ID:</Text>
               <Text style={styles.value}>{parcel.deviceid || "N/A"}</Text>

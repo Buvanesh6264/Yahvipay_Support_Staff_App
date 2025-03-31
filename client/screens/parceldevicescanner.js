@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TextInput, TouchableOpacity ,Alert } from "reac
 import { CameraView, Camera } from "expo-camera";
 import { useFocusEffect } from "@react-navigation/native";
 
-export default function Scanner({ navigation }) {
+export default function ParcelScanner({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [productId, setProductId] = useState("");
@@ -30,20 +30,21 @@ export default function Scanner({ navigation }) {
 
   const handleBarcodeScanned = async ({ data }) => {
     setScanned(true);
-    setProductId(data);
-  
+  console.log(data)
     try {
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/${data}`);
       const result = await response.json();
+      console.log(result)
   
       if (response.ok && result.device) {
-        Alert.alert("Device Found", `Device ID: ${data} exists.`, [
-          { text: "OK", onPress: () => navigation.navigate("devicedetail", { deviceid: data }) }
-        ]);
+        console.log(result.device.status)
+        if (result.device.status === "available") {
+            navigation.navigate("createparcel", { scannedDevice: { id: data, status: result.device.status } });
+        } else {
+          Alert.alert("Error", `Device ${data} is not available.`);
+        }
       } else {
-        Alert.alert("New Device", `Device ID: ${data} not found.`, [
-          { text: "OK", onPress: () => navigation.navigate("adddevice", { scannedId: data }) }
-        ]);
+        Alert.alert("Error", "Device not found.");
       }
     } catch (error) {
       console.error("Error checking device:", error);

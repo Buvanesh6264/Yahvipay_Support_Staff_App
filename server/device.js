@@ -76,40 +76,19 @@ router.get("/userdevices", authenticatetoken, async (req, res) => {
       description: "Something went wrong on the server",
       status_code: 500,
     });
+  }finally {
+    await client.close();
   }
 });
 
 router.post("/adddevice", authenticateToken, async (req, res) => {
   try {
-    const { devicename, status, agentid, userid, image } = req.body;
-    const errors = [];
+    const { devicename, status, agentid, image, deviceid } = req.body;
 
-    const supportid = req.user.supportid;
-    const validStatuses = ["available", "assigned", "delivered", "damaged"];
-
-    if (!devicename) {
-      errors.push({ field: "devicename", error: "This field is required" });
-    }
-
-    if (!status) {
-      errors.push({ field: "status", error: "This field is required" });
-    } else if (!validStatuses.includes(status)) {
-      errors.push({ field: "status", error: `Invalid status. Allowed: ${validStatuses.join(", ")}` });
-    }
-
-    if (status !== "available" && (!supportid || !agentid || !userid)) {
-      errors.push({
-        field: "supportid/agentid/userid",
-        error: "Required when status is not 'available'",
-      });
-    }
-
-    if (errors.length > 0) {
+    if (!devicename || !status || !deviceid) {
       return res.status(400).json({
         status: "error",
-        message: "Invalid input",
-        description: "Invalid syntax for this request was provided",
-        errors: errors,
+        message: "Device name, status, and device ID are required",
         status_code: 400,
       });
     }
@@ -118,23 +97,28 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection(deviceCollection);
 
-    const deviceid = "SO" + Date.now();
+    const existingDevice = await collection.findOne({ deviceid });
 
+    if (existingDevice) {
+      return res.status(400).json({
+        status: "error",
+        message: "Device already exists",
+        status_code: 400,
+      });
+    }
+    const inventory = status === "available";
     await collection.insertOne({
       devicename,
       deviceid,
       status,
-      supportid: status === "available" ? "" : supportid,
       agentid: status === "available" ? "" : agentid,
-      userid: status === "available" ? "" : userid,
-      image: image || "", 
+      inventory,
+      image: image || "",
     });
 
     res.status(201).json({
       status: "success",
       message: "Device added successfully",
-      deviceid: deviceid,
-      image: image || "",
       status_code: 201,
     });
 
@@ -143,9 +127,10 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "Internal server error",
-      description: "Something went wrong on the server",
       status_code: 500,
     });
+  }finally {
+    await client.close();
   }
 });
 
@@ -172,37 +157,7 @@ router.get("/alldevices", async (req, res) => {
     }
 });
 
-router.get("/:deviceid", async (req, res) => {
-    try {
-        const { deviceid } = req.params;
-        // console.log(req.params)
-        await client.connect();
-        const db = client.db(dbName);
-        const collection = db.collection(deviceCollection);
-        
-        const device = await collection.findOne({ deviceid });
-        // console.log(device)
-        if (!device) {
-        return res.status(404).json({
-            status: "error",
-            message: "Device not found",
-            status_code: 404
-        });
-        }
 
-        res.status(200).json({
-        status: "success",
-        message: "Device retrieved successfully",
-        device,
-        status_code: 200
-        });
-    } catch (error) {
-        console.error("Fetch Device Error:", error);
-        res.status(400).json({ error: "Internal server error" });
-    } finally {
-        await client.close();
-    }
-});
 
 router.post("/updatedevice", authenticateToken, async (req, res) => {
   try {
@@ -282,27 +237,68 @@ router.post("/updatedevice", authenticateToken, async (req, res) => {
   }
 });
 
-router.get("/userdevices", authenticateToken, async (req, res) => {
+router.get("/availabledevicescount", async (req, res) => {
+    try {  
+      await client.connect();
+      const db = client.db(dbName);
+      const collection = db.collection(deviceCollection);
+  
+      const device = await collection.find({status:"available"}).toArray();
+      console.log(device);
+      const count = device.length
+      res.status(200).json({
+        status: "success",
+        message: "retrieved successfully",
+        data: count,
+        status_code: 200,
+      });
+    } catch (error) {
+      console.error("Fetch Support error:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Internal server error",
+        description: "Something went wrong on the server",
+        status_code: 500,
+      });
+    }finally {
+      await client.close();
+    }
+  });
+
+
+router.get('/get',(req,res)=>{
+  res.send('send');
+})
+
+router.get("/:deviceid", async (req, res) => {
   try {
-    const supportid = req.user.supportid;
-    const db = client.db(dbName);
-    const collection = db.collection(deviceCollection);
+      const { deviceid } = req.params;
+      // console.log(req.params)
+      await client.connect();
+      const db = client.db(dbName);
+      const collection = db.collection(deviceCollection);
+      
+      const device = await collection.findOne({ deviceid });
+      // console.log(device)
+      if (!device) {
+      return res.status(404).json({
+          status: "error",
+          message: "Device not found",
+          status_code: 404
+      });
+      }
 
-    const devices = await collection.find({ supportid }).toArray();
-
-    res.status(200).json({
+      res.status(200).json({
       status: "success",
-      message: "User devices retrieved successfully",
-      data: devices,
-      status_code: 200,
-    });
+      message: "Device retrieved successfully",
+      device,
+      status_code: 200
+      });
   } catch (error) {
-    console.error("Fetch User Devices Error:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-      status_code: 500,
-    });
+      console.error("Fetch Device Error:", error);
+      res.status(400).json({ error: "Internal server error" });
+  } finally {
+      await client.close();
   }
 });
 

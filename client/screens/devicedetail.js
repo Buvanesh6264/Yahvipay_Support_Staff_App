@@ -60,11 +60,6 @@ const DeviceDetail = ({ route }) => {
               <Text style={styles.label}>Agent ID:</Text>
               <Text style={styles.value}>{device.agentid || "N/A"}</Text>
             </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>User ID:</Text>
-              <Text style={styles.value}>{device.userid || "N/A"}</Text>
-            </View>
           </View>
 
           <TouchableOpacity style={styles.button} onPress={() => console.log("Update Device")}>

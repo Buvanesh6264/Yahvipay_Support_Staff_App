@@ -59,7 +59,7 @@ export default function UserParcelScreen() {
           renderItem={({ item }) => (
             <Card style={styles.card}>
               <Card.Cover source={{ uri: item.image }} style={styles.image} />
-              <Card.Title title={`Parcel ${item.parcelNumber}`} subtitle={`Status: ${item.status}`} />
+              <Card.Title title={`Parcel ${item.parcelNumber}`}  />
 
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.button} onPress={() => handleTrackPackage(item.parcelNumber)}>

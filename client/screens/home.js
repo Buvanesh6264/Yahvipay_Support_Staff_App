@@ -1,11 +1,54 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
+import React ,{useState,useEffect} from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Card } from "react-native-paper";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const [deviceCount, setDeviceCount] = useState(0);
+  const [parcelCount, setParcelCount] = useState(0);
+  const [pendingDeliveries, setPendingDeliveries] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        // const token = await AsyncStorage.getItem('token');
+        const deviceRes = await fetch(`${apiUrl}/device/availabledevicescount`);
+        const parcelRes = await fetch(`${apiUrl}/parcel/parcelcount`
+          // , {
+          //   headers: {
+          //     Authorization: token,
+          //   },
+          // }
+        )
+  
+        const deviceData = await deviceRes.json();
+        const parcelData = await parcelRes.json();
+        console.log(`this is${deviceData.data}`)
+        console.log(`this parcel${parcelData.data}`)
+        if (deviceRes.ok && parcelRes.ok) {
+          setDeviceCount(deviceData.data || 0);
+          setParcelCount(parcelData.data || 0);
+          // setPendingDeliveries(parcelData.pendingDeliveries || 0); 
+        } else {
+          console.error("Error fetching counts:", deviceData.message, parcelData.message);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchCounts();
+  }, []);
+  
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -14,41 +57,40 @@ export default function HomeScreen() {
           <Text style={styles.title}>Service Dashboard</Text>
         </View>
 
-        <View style={styles.statsContainer}>
-          <Card style={styles.statCard}>
-            <Text style={styles.statTitle}>Total Parcels</Text>
-            <Text style={styles.statValue}>12</Text>
-          </Card>
-          <Card style={styles.statCard}>
-            <Text style={styles.statTitle}>Total Devices</Text>
-            <Text style={styles.statValue}>8</Text>
-          </Card>
-          <Card style={styles.statCard}>
-            <Text style={styles.statTitle}>Pending Deliveries</Text>
-            <Text style={styles.statValue}>5</Text>
-          </Card>
-        </View>
+        {loading ? (
+          <ActivityIndicator size="large" color="black" style={styles.loader} />
+        ) : (
+          <View style={styles.statsContainer}>
+            <Card style={styles.statCard}>
+              <Text style={styles.statTitle}>Total Parcels</Text>
+              <Text style={styles.statValue}>{parcelCount}</Text>
+            </Card>
+            <Card style={styles.statCard}>
+              <Text style={styles.statTitle}>Available Devices</Text>
+              <Text style={styles.statValue}>{deviceCount}</Text>
+            </Card>
+            <Card style={styles.statCard}>
+              <Text style={styles.statTitle}>Pending Deliveries</Text>
+              <Text style={styles.statValue}>{pendingDeliveries}</Text>
+            </Card>
+          </View>
+        )}
 
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("devices", { screen: "adddevice" })}>
+        {/* <View style={styles.quickActions}>
+         <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("devices", { screen: "adddevice" })}>
             <MaterialIcons name="add-circle-outline" size={24} color="white" />
             <Text style={styles.actionText}>Add Device</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("parcels", { screen: "createparcel" })}>
-            <MaterialIcons name="local-shipping" size={24} color="white" />
-            <Text style={styles.actionText}>Create Parcel</Text>
-          </TouchableOpacity>
-        </View>
+          </TouchableOpacity>   
+        </View> */}
 
         <View style={styles.viewContainer}>
           <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("parcels", { screen: "parcels" })}>
             <FontAwesome5 name="box-open" size={24} color="white" />
-            <Text style={styles.viewText}>View Parcels</Text>
+            <Text style={styles.viewText}>All Parcels</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "devices" })}>
             <MaterialIcons name="devices" size={24} color="white" />
-            <Text style={styles.viewText}>View Devices</Text>
+            <Text style={styles.viewText}>All Devices</Text>
           </TouchableOpacity>
         </View>
 
@@ -66,7 +108,12 @@ export default function HomeScreen() {
         <View style={styles.viewContainer}>
           <TouchableOpacity style={styles.viewButton} onPress={() => navigation.navigate("devices", { screen: "qrscan" })}>
             <FontAwesome5 name="qrcode" size={24} color="white" />
-            <Text style={styles.viewText}>Scan QR</Text>
+            <Text style={styles.viewText}>Add Device</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("parcels", { screen: "createparcel" })}>
+            <MaterialIcons name="local-shipping" size={24} color="white" />
+            <Text style={styles.actionText}>Create Parcel</Text>
           </TouchableOpacity>
         </View>
 

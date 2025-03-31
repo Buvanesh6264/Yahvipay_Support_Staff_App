@@ -6,6 +6,9 @@ const userRoutes = require("./user.js");
 const deviceRoutes = require("./device.js");
 const parcellRoutes = require("./parcell.js");
 const trackingRoutes = require("./tracking.js");
+const accessories = require("./accessory.js");
+const addparcel = require("./addparcel.js");
+
 
 
 const app = express();
@@ -17,6 +20,9 @@ app.use("/user", userRoutes);
 app.use("/device", deviceRoutes); 
 app.use("/parcel", parcellRoutes);
 app.use("/tracking", trackingRoutes);
+app.use("/accessory", accessories);
+app.use("/addparcel", addparcel);
+
 
 app.get("/", (req, res) => {
   res.status(200).send("Server is running...");

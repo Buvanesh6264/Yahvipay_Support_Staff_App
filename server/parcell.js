@@ -2,8 +2,6 @@ const express = require("express");
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-
-
 const router = express.Router();
 
 const uri = process.env.MONGO_URI;
@@ -17,11 +15,25 @@ const client = new MongoClient(uri);
 
 
 
-const generateParcelNumber = () => {
-  const timestamp = Date.now().toString().slice(-6); 
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  return `PCL${timestamp}${randomSuffix}`; 
-};
+// const generateParcelNumber = () => {
+//   const timestamp = Date.now().toString().slice(-6); 
+//   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+//   return `PCL${timestamp}${randomSuffix}`; 
+// };
+// function authenticateToken1(req, res, next) {
+  // const authHeader = req.headers["authorization"];
+  // const token = authHeader && authHeader.split(" ")[1];
+
+  // if (!token) {
+  //   return res.status(401).json({ error: "Unauthorized: No token provided" });
+  // }
+
+  // jwt.verify(token, JWT_SECRET, (err, user) => {
+  //   if (err) return res.status(403).json({ error: "Forbidden: Invalid token" });
+  //   req.user = user; 
+  //   next();
+  // });
+// }
 
 const authenticateToken = (req, res, next) => {
   const token = req.headers["authorization"];
@@ -57,7 +69,6 @@ router.get("/userparcels", authenticateToken, async (req, res) => {
     const collection = db.collection(parcelCollection);
 
     const parcels = await collection.find({ supportid }).toArray();
-
     res.status(200).json({
       status: "success",
       message: "Parcels retrieved successfully",
@@ -72,113 +83,111 @@ router.get("/userparcels", authenticateToken, async (req, res) => {
       description: "Something went wrong on the server",
       status_code: 500,
     });
+  }finally {
+    await client.close();
   }
 });
 
-router.post("/addparcel", authenticateToken, async (req, res) => {
-  try {
-      const {
-          deviceid,
-          accessories,
-          pickupLocation,
-          destination,
-          agentid,
-          userid,
-          sender,
-          reciver
-      } = req.body;
+// router.post("/addparcel", authenticateToken1, async (req, res) => {
+//   try {
+//     const { pickupLocation, destination, agentid, userid, devices, accessories, reciver, sender } = req.body;
+//     const supportid = req.supportid.id;
 
-      const supportid = req.user.supportid; 
+//     if (!pickupLocation || !destination || !devices || devices.length !== 0) {
+//       return res.status(400).json({
+//         status: "error",
+//         message: "Pickup location, destination, device IDs are required",
+//         status_code: 400,
+//       });
+//     }
 
-      const errors = [];
+//     await client.connect();
+//     const db = client.db(dbName);
+//     const Device = db.collection(devicesCollection);
+//     const Accessory = db.collection(accessoriesCollection);
+//     const Parcel = db.collection(parcelCollection);
 
-      if (!deviceid) {
-          errors.push({ field: "deviceid", error: "Device ID is required" });
-      }
+//     for (let deviceid of devices) {
+//       const device = await Device.findOne({ deviceid });
+//       if (!device) {
+//         return res.status(400).json({
+//           status: "error",
+//           message: `Device ${deviceid} not found`,
+//           status_code: 400,
+//         });
+//       }
+//       if (device.status !== "available") {
+//         return res.status(400).json({
+//           status: "error",
+//           message: `Device ${deviceid} is not available`,
+//           status_code: 400,
+//         });
+//       }
+//     }
 
-      if (accessories && !Array.isArray(accessories)) {
-          errors.push({ field: "accessories", error: "Accessories must be an array" });
-      }
+//     for (let accessoryId of accessories) {
+//       const accessory = await Accessory.findOne({ accessoryid: accessoryId });
+//       if (!accessory || accessory.quantity <= 0) {
+//         return res.status(400).json({
+//           status: "error",
+//           message: `Accessory ${accessoryId} is out of stock`,
+//           status_code: 400,
+//         });
+//       }
+//     }
 
-      if (!pickupLocation) {
-          errors.push({ field: "pickupLocation", error: "Pickup location is required" });
-      }
+//     const parcelNumber = generateParcelNumber();
+//     await Parcel.insertOne({
+//       parcelNumber,
+//       pickupLocation,
+//       destination,
+//       agentid,
+//       supportid,
+//       userid,
+//       devices,
+//       accessories,
+//       reciver,
+//       sender,
+//     });
 
-      if (!destination) {
-          errors.push({ field: "destination", error: "Destination is required" });
-      }
+//     for (let deviceid of devices) {
+//       await Device.updateOne(
+//         { deviceid },
+//         {
+//           $set: {
+//             status: "assigned",
+//             supportid,
+//             agentid,
+//             userid,
+//             inventory: false,
+//           },
+//         }
+//       );
+//     }
 
-      if (!agentid) {
-          errors.push({ field: "agentid", error: "Agent ID is required" });
-      }
+//     for (let accessoryId of accessories) {
+//       await Accessory.updateOne(
+//         { accessoryid: accessoryId },
+//         { $inc: { quantity: -1 } }
+//       );
+//     }
 
-      if (!supportid) {
-          errors.push({ field: "supportid", error: "Support ID is required" });
-      }
-
-      if (!userid) {
-          errors.push({ field: "userid", error: "User ID is required" });
-      }
-
-      if (!sender) {
-          errors.push({ field: "sender", error: "Sender is required" });
-      }
-
-      if (!reciver) {
-          errors.push({ field: "reciver", error: "Receiver is required" });
-      }
-
-      if (errors.length > 0) {
-          return res.status(400).json({
-              status: "error",
-              message: "Invalid input",
-              errors,
-              status_code: 400
-          });
-      }
-
-      await client.connect();
-      const db = client.db(dbName);
-      const parcelCol = db.collection(parcelCollection);
-
-      let parcelNumber;
-      let parcelExists;
-      do {
-          parcelNumber = generateParcelNumber();
-          parcelExists = await parcelCol.findOne({ parcelNumber });
-      } while (parcelExists);
-
-      const newParcel = {
-          parcelNumber,
-          deviceid,
-          accessories: accessories || [],
-          pickupLocation,
-          destination,
-          agentid,
-          supportid,
-          userid,
-          sender,
-          reciver
-      };
-
-      await parcelCol.insertOne(newParcel);
-
-      res.status(201).json({
-          status: "success",
-          message: "Parcel created successfully",
-          parcel: newParcel,
-          status_code: 201
-      });
-  } catch (error) {
-      console.error("Parcel Creation Error:", error);
-      res.status(500).json({
-          status: "error",
-          message: "Internal server error",
-          description: "Something went wrong on the server",
-          status_code: 500
-      });
-  }
-});
+//     res.status(201).json({
+//       status: "success",
+//       message: "Parcel added successfully",
+//       status_code: 201,
+//     });
+//   } catch (error) {
+//     console.error("Parcel Addition Error:", error);
+//     res.status(500).json({
+//       status: "error",
+//       message: "Internal server error",
+//       status_code: 500,
+//     });
+//   }finally {
+//     await client.close();
+//   }
+// });
 
 
 router.get("/allparcels", async (req, res) => {
@@ -216,10 +225,43 @@ router.get("/allparcels", async (req, res) => {
         description: "Something went wrong on the server",
         status_code: 400,
       });
+    }finally {
+      await client.close();
     }
 });
 
-router.get("/:parcelNumber", async (req, res) => {
+
+
+router.get("/parcelcount", async (req, res) => {
+    try {
+      // const supportid = req.user.supportid;
+  
+      await client.connect();
+      const db = client.db(dbName);
+      const collection = db.collection(parcelCollection);
+  
+      const parcels = await collection.find({}).toArray();
+      const count =parcels.length;
+      console.log(count)
+      res.status(200).json({
+        status: "success",
+        message: "Parcels count retrieved successfully",
+        data: count,
+        status_code: 200,
+      });
+    } catch (error) {
+      console.error("Fetch Support Parcels Error:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Internal server error",
+        description: "Something went wrong on the server",
+        status_code: 500,
+      });
+    }finally {
+      await client.close();
+    }
+  });
+  router.get("/:parcelNumber", async (req, res) => {
     try {
         const { parcelNumber } = req.params;
         
@@ -254,10 +296,9 @@ router.get("/:parcelNumber", async (req, res) => {
         description: "Something went wrong on the server",
         status_code: 400,
         });
+    }finally {
+      await client.close();
     }
 });
-
-
-
 
 module.exports = router;

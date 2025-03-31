@@ -16,6 +16,7 @@ import UserDeviceScreen from "./userdevice";
 import UserParcelScreen from "./userparcel";
 import CreateParcelScreen from "./createparcel";
 import Scanner from "./scanner";
+import ParcelScanner from "./parceldevicescanner";
 
 
 const Stack = createStackNavigator();
@@ -42,6 +43,7 @@ function ParcelsStack() {
       <Stack.Screen name="TrackPackage" component={TrackingScreen} />
       <Stack.Screen name="userspakage" component={UserParcelScreen} />
       <Stack.Screen name="createparcel" component={CreateParcelScreen} />
+      <Stack.Screen name="parcelqrscan" component={ParcelScanner} />
     </Stack.Navigator>
   );
 }
