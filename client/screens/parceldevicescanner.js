@@ -44,8 +44,8 @@ export default function ParcelScanner({ navigation }) {
           Alert.alert("Error", `Device ${data} is not available.`);
         }
       } else {
-        Alert.alert("Error", "Device not found.");
-      }
+              Alert.alert("New Device", `Device ID: ${data} not found.Add the device`);
+            }
     } catch (error) {
       console.error("Error checking device:", error);
       Alert.alert("Error", "Could not check device. Try again.");

@@ -8,8 +8,7 @@ const parcellRoutes = require("./parcell.js");
 const trackingRoutes = require("./tracking.js");
 const accessories = require("./accessory.js");
 const addparcel = require("./addparcel.js");
-
-
+const updateparcel = require("./updateparcel.js");
 
 const app = express();
 const PORT = process.env.PORT;
@@ -22,6 +21,7 @@ app.use("/parcel", parcellRoutes);
 app.use("/tracking", trackingRoutes);
 app.use("/accessory", accessories);
 app.use("/addparcel", addparcel);
+app.use("/update", updateparcel);
 
 
 app.get("/", (req, res) => {

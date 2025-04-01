@@ -17,7 +17,7 @@ const AddDeviceScreen = ({ navigation, route }) => {
   const [devicename, setDeviceName] = useState("");
   const [status, setStatus] = useState("available");
   const [agentid, setAgentId] = useState("");
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState("https://business.paytm.com/s3assets/images/PWE-2058/retina/soundbox_double_battery@2x.webp?version=1742984154");
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
   const [productId, setProductId] = useState("");
@@ -134,9 +134,8 @@ const AddDeviceScreen = ({ navigation, route }) => {
         <Text style={styles.label}>Image URL</Text>
         <TextInput
           value={image}
-          onChangeText={setImage}
           style={styles.input}
-          placeholder="Enter image URL"
+          editable={false}
         />
 
         <TouchableOpacity style={styles.button} onPress={handleAddDevice}>

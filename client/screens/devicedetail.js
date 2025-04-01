@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, Image, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const DeviceDetail = ({ route }) => {
@@ -35,128 +35,100 @@ const DeviceDetail = ({ route }) => {
   return (
     <SafeAreaView style={styles.safeContainer}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.container}>
-          <Image source={{ uri: device.image }} style={styles.image} />
-
-          <View style={styles.detailsCard}>
-            <Text style={styles.deviceName}>{device.devicename}</Text>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Device ID:</Text>
-              <Text style={styles.value}>{device.deviceid}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Status:</Text>
-              <Text style={[styles.status, styles[device.status]]}>{device.status.toUpperCase()}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Support ID:</Text>
-              <Text style={styles.value}>{device.supportid || "N/A"}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Agent ID:</Text>
-              <Text style={styles.value}>{device.agentid || "N/A"}</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity style={styles.button} onPress={() => console.log("Update Device")}>
-            <Text style={styles.buttonText}>Update Device</Text>
-          </TouchableOpacity>
+        <Image source={{ uri: device.image }} style={styles.deviceImage} />
+        <View style={styles.header}>
+          <Text style={styles.deviceId}>Device ID: {device.deviceid}</Text>
+        </View>
+        <View style={styles.detailsContainer}>
+          <DetailCard label="Device Name" value={device.devicename} />
+          <DetailCard label="Status" value={device.status.toUpperCase()} status={device.status} />
+          <DetailCard label="Support ID" value={device.supportid || "N/A"} />
+          <DetailCard label="Agent ID" value={device.agentid || "N/A"} />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+const DetailCard = ({ label, value, status }) => (
+  <View style={styles.detailCard}>
+    <Text style={styles.label}>{label}:</Text>
+    <Text style={[styles.value, status ? styles[status] : null]}>{value}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: "#F4F7FC",
+    backgroundColor: "#F5F7FB",
   },
   scrollContainer: {
     flexGrow: 1,
-    alignItems: "center",
     paddingVertical: 20,
+    // alignItems: "center",
   },
-  container: {
-    width: "90%",
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    paddingBottom: 20,
+  header: {
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  image: {
+    backgroundColor: "#EDEDED",
+    paddingVertical: 20,
     width: "100%",
-    height: 220,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    resizeMode: "cover",
   },
-  detailsCard: {
-    width: "100%",
-    padding: 20,
+  deviceImage: {
+    width: 250,
+    height: 250,
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginTop: 20,
   },
-  deviceName: {
-    fontSize: 22,
-    fontWeight: "bold",
+  deviceId: {
+    fontSize: 18,
+    fontWeight: "600",
     color: "#333",
-    textAlign: "center",
-    marginBottom: 15,
+    marginTop: 10,
   },
-  infoRow: {
+  detailsContainer: {
+    marginHorizontal: 20,
+    marginTop: 20,
+  },
+  detailCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    padding: 15,
+    height:70,
+    marginBottom: 10,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 5,
     flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-    paddingVertical: 10,
+    justifyContent: "space-around",
+    alignItems: "center",
   },
   label: {
     fontSize: 16,
-    color: "#555",
     fontWeight: "600",
+    color: "#555",
+    flex: 1,
   },
   value: {
     fontSize: 16,
-    color: "#333",
     fontWeight: "500",
-  },
-  status: {
-    fontSize: 16,
-    fontWeight: "700",
-    textTransform: "capitalize",
+    color: "#333",
+    flex: 1,
+    // textAlign: "right",
   },
   available: {
-    color: "green",
+    color: "#28A745", 
   },
   assigned: {
-    color: "orange",
+    color: "#FFC107", 
   },
   delivered: {
-    color: "blue",
+    color: "#17A2B8",
   },
   damaged: {
-    color: "red",
-  },
-  button: {
-    backgroundColor: "#007bff",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    marginTop: 15,
-  },
-  buttonText: {
-    fontSize: 18,
-    color: "#ffffff",
-    fontWeight: "bold",
-    textAlign: "center",
+    color: "#DC3545", 
   },
   loader: {
     flex: 1,
@@ -165,7 +137,7 @@ const styles = StyleSheet.create({
   },
   noData: {
     fontSize: 18,
-    color: "red",
+    color: "#DC3545",
     textAlign: "center",
     marginTop: 50,
   },

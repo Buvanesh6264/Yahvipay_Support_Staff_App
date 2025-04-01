@@ -7,11 +7,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { Card } from "react-native-paper";
+import { Card, Appbar } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const ParcelDetail = ({ route }) => {
   const { parcelNumber } = route.params;
+  const navigation = useNavigation();
   const [parcel, setParcel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,7 +26,6 @@ const ParcelDetail = ({ route }) => {
       try {
         const response = await fetch(`${apiUrl}/parcel/${parcelNumber}`);
         const data = await response.json();
-
         if (response.ok) {
           setParcel(data.data);
         } else {
@@ -34,9 +37,17 @@ const ParcelDetail = ({ route }) => {
         setLoading(false);
       }
     };
-
     fetchParcelDetails();
   }, [parcelNumber]);
+
+  const handleNavigateToUpdateParcel = async () => {
+    try {
+      await AsyncStorage.setItem("parcelNumber", parcelNumber);
+      navigation.navigate("UpdateParcel", { parcelNumber });
+    } catch (error) {
+      console.error("Error saving parcel number:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -56,157 +67,92 @@ const ParcelDetail = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
+      <Appbar.Header style={styles.appbar}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Parcel Details"titleStyle={styles.navbarTitle} />
+      </Appbar.Header>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>
+              <MaterialIcons name="person" size={20} /> {parcel.sender} ➝ {parcel.reciver}
+            </Text>
+            <Text style={styles.subtitle}>
+              <MaterialIcons name="location-on" size={20} /> {parcel.pickupLocation} ➝ {parcel.destination}
+            </Text>
+          </View>
+        </View>
+
         <Card style={styles.card}>
           <Card.Content>
-            <Text style={styles.title}>Parcel Details</Text>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Parcel Number:</Text>
-              <Text style={styles.value}>{parcel.parcelNumber}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Pickup Location:</Text>
-              <Text style={styles.value}>{parcel.pickupLocation}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Destination:</Text>
-              <Text style={styles.value}>{parcel.destination}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Agent ID:</Text>
-              <Text style={styles.value}>{parcel.agentid || "N/A"}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Support ID:</Text>
-              <Text style={styles.value}>{parcel.supportid || "N/A"}</Text>
-            </View>
-            <View style={styles.detailRow}>
-                <Text style={styles.label}>Devices:</Text>
-                <Text style={styles.value}>
-                  {parcel.devices && parcel.devices.length > 0 ? parcel.devices.join(", ") : "None"}
-                </Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Accessories:</Text>
-                <View style={styles.valueColumn}>
-                  {parcel.accessories && parcel.accessories.length > 0 ? (
-                    parcel.accessories.map((acc, index) => (
-                      <Text key={index} style={styles.value}>
-                        {acc.id} (Qty: {acc.quantity})
-                      </Text>
-                    ))
-                  ) : (
-                    <Text style={styles.value}>None</Text>
-                  )}
-                </View>
-              </View>
-
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Receiver:</Text>
-              <Text style={styles.value}>{parcel.reciver || "N/A"}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Sender:</Text>
-              <Text style={styles.value}>{parcel.sender || "N/A"}</Text>
-            </View>
+            <Text style={styles.sectionTitle}>
+              <MaterialIcons name="info" size={20} /> Parcel Information
+            </Text>
+            <Text style={styles.info}>
+              <MaterialIcons name="confirmation-number" size={16} /> {parcel.parcelNumber}
+            </Text>
+            <Text style={styles.info}>
+              <MaterialIcons name="person" size={16} /> Agent ID: {parcel.agentid || "N/A"}
+            </Text>
+            <Text style={styles.info}>
+              <MaterialIcons name="support-agent" size={16} /> Support ID: {parcel.supportid || "N/A"}
+            </Text>
           </Card.Content>
         </Card>
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>
+              <MaterialIcons name="devices" size={20} /> Devices
+            </Text>
+            <Text style={styles.info}>
+              {parcel.devices?.length > 0 ? parcel.devices.join(", ") : "None"}
+            </Text>
+          </Card.Content>
+        </Card>
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>
+              <MaterialIcons name="settings" size={20} /> Accessories
+            </Text>
+            {parcel.accessories?.length > 0 ? (
+              parcel.accessories.map((acc, index) => (
+                <Text key={index} style={styles.info}>
+                  <MaterialIcons name="inventory" size={16} /> {acc.id} (Qty: {acc.quantity})
+                </Text>
+              ))
+            ) : (
+              <Text style={styles.info}>None</Text>
+            )}
+          </Card.Content>
+        </Card>
+
+        <TouchableOpacity style={styles.button} onPress={handleNavigateToUpdateParcel}>
+          <Text style={styles.buttonText}>Update Parcel</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeContainer: {
-    flex: 1,
-    backgroundColor: "#F4F7FC",
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  card: {
-    width: "90%",
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    paddingBottom: 15,
-    paddingHorizontal: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-    paddingVertical: 10,
-  },
-  label: {
-    fontSize: 16,
-    color: "#555",
-    fontWeight: "600",
-    flex: 1,
-  },
-  value: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
-    flex: 2,
-    textAlign: "right",
-  },
-  valueColumn: {
-    flex: 2,
-    alignItems: "flex-end",
-  },
-  error: {
-    fontSize: 18,
-    color: "red",
-    textAlign: "center",
-    marginTop: 50,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f7f7f7",
-  },
-  button: {
-    backgroundColor: "#007bff",
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 20,
-    width: "90%",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
+  safeContainer: { flex: 1, backgroundColor: "#f9f9f9" },
+  scrollContainer: { padding: 16 },
+  appbar: { backgroundColor: "#fff",height:25,marginTop:-20 }, 
+  navbarTitle: { color: '#333', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+  header: { flexDirection: "row", alignItems: "center", padding: 16, backgroundColor: "#007bff", borderRadius: 12, marginBottom: 16 },
+  headerTextContainer: { marginLeft: 8 },
+  title: { fontSize: 20, fontWeight: "bold", color: "#fff" },
+  subtitle: { fontSize: 16, color: "#fff", marginTop: 4 },
+  card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, marginBottom: 16 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  info: { fontSize: 16, marginVertical: 4, color: "#333" },
+  button: { marginTop: 20, backgroundColor: "#007bff", padding: 14, borderRadius: 12, alignItems: "center" },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  error: { color: "red", textAlign: "center", marginTop: 20 },
 });
 
 export default ParcelDetail;

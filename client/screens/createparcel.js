@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TextInput, Button, Alert, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, Button, Alert, FlatList, TouchableOpacity, StyleSheet ,SafeAreaView,StatusBar } from "react-native";
+// import { Appbar } from 'react-native-paper';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 
@@ -140,7 +141,7 @@ const CreateParcelScreen = ({ route }) => {
   }, [token, pickupLocation, destination, agentid, devices, accessories, reciver, sender]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Add Parcel</Text>
       <TextInput style={styles.input} placeholder="Pickup Location" value={pickupLocation} onChangeText={setPickupLocation} />
       <TextInput style={styles.input} placeholder="Destination" value={destination} onChangeText={setDestination} />
@@ -178,7 +179,7 @@ const CreateParcelScreen = ({ route }) => {
 
 
       <Button title="Add Parcel" onPress={handleAddParcel} />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -186,7 +187,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    // marginTop:19,
     backgroundColor: "#fff",
+    paddingTop: StatusBar.currentHeight,
   },
   title: {
     fontSize: 24,

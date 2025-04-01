@@ -14,7 +14,7 @@ export default function UserParcelScreen() {
     const fetchParcels = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch(apiUrl+'/parcel/userparcels', {
+        const response = await fetch(apiUrl + '/parcel/userparcels', {
           headers: {
             Authorization: token,
           },
@@ -47,26 +47,27 @@ export default function UserParcelScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.Content title="Parcels" titleStyle={styles.navbarTitle} />
+        <Appbar.BackAction onPress={() => navigation.navigate('Home')}color="white" />
+        <Appbar.Content title="Your Parcels" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 
       {loading ? (
-        <ActivityIndicator size="large" color="black" style={styles.loader} />
+        <ActivityIndicator size="large" color="#007bff" style={styles.loader} />
       ) : (
         <FlatList
           data={parcels}
           keyExtractor={(item) => item.parcelNumber.toString()}
           renderItem={({ item }) => (
             <Card style={styles.card}>
-              <Card.Cover source={{ uri: item.image }} style={styles.image} />
-              <Card.Title title={`Parcel ${item.parcelNumber}`}  />
+              {/* <Card.Cover source={{ uri: item.image }} style={styles.image} /> */}
+              <Card.Title title={`Parcel ${item.parcelNumber}`} titleStyle={styles.cardTitle} />
 
               <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button} onPress={() => handleTrackPackage(item.parcelNumber)}>
+                <TouchableOpacity style={styles.trackButton} onPress={() => handleTrackPackage(item.parcelNumber)}>
                   <Text style={styles.buttonText}>Track Package</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.button} onPress={() => handleViewPackage(item.parcelNumber)}>
+                <TouchableOpacity style={styles.viewButton} onPress={() => handleViewPackage(item.parcelNumber)}>
                   <Text style={styles.buttonText}>View Package</Text>
                 </TouchableOpacity>
               </View>
@@ -79,13 +80,49 @@ export default function UserParcelScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
-  navbar: { backgroundColor: 'black' },
-  navbarTitle: { color: 'white', fontSize: 20, fontWeight: 'bold' },
-  image: { height: 150, resizeMode: 'cover' },
+  container: { flex: 1, backgroundColor: '#F4F6F9', paddingBottom: 10 },
+  navbar: { backgroundColor: '#007bff', elevation: 4 },
+  navbarTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
   loader: { marginTop: 50 },
-  card: { margin: 10, padding: 10, backgroundColor: '#f5f5f5' },
-  buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  button: { backgroundColor: '#007bff', paddingVertical: 8, paddingHorizontal: 25, borderRadius: 8, marginTop: 10 },
-  buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  card: {
+    marginHorizontal: 15,
+    marginVertical: 10,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 5,
+    paddingBottom: 15,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  // image: { height: 180, resizeMode: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center', marginTop: 10 },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 15,
+    paddingHorizontal: 10,
+  },
+  trackButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    elevation: 3,
+  },
+  viewButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    elevation: 3,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });

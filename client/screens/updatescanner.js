@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Text, View, StyleSheet, TextInput, TouchableOpacity ,Alert } from "react-native";
 import { CameraView, Camera } from "expo-camera";
-import { Appbar } from 'react-native-paper';
 import { useFocusEffect } from "@react-navigation/native";
 
-export default function Scanner({ navigation }) {
+export default function UpdateScanner({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [productId, setProductId] = useState("");
@@ -31,21 +30,22 @@ export default function Scanner({ navigation }) {
 
   const handleBarcodeScanned = async ({ data }) => {
     setScanned(true);
-    setProductId(data);
-  
+  console.log(data)
     try {
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/${data}`);
       const result = await response.json();
+      console.log(result)
   
       if (response.ok && result.device) {
-        Alert.alert("Device Found", `Device ID: ${data} exists.`, [
-          { text: "OK", onPress: () => navigation.navigate("devicedetail", { deviceid: data }) }
-        ]);
+        console.log(result.device.status)
+        if (result.device.status === "available") {
+            navigation.navigate("UpdateParcel", { scannedDevice: { id: data, status: result.device.status } });
+        } else {
+          Alert.alert("Error", `Device ${data} is not available.`);
+        }
       } else {
-        Alert.alert("New Device", `Device ID: ${data} not found.`, [
-          { text: "OK", onPress: () => navigation.navigate("adddevice", { scannedId: data }) }
-        ]);
-      }
+              Alert.alert("New Device", `Device ID: ${data} not found.Add the device`);
+            }
     } catch (error) {
       console.error("Error checking device:", error);
       Alert.alert("Error", "Could not check device. Try again.");
@@ -64,10 +64,6 @@ export default function Scanner({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate("Home")} />
-        <Appbar.Content title="Scanner" titleStyle={styles.navbarTitle}/>
-      </Appbar.Header>
       {isCameraActive && (
         <View style={styles.cameraContainer}>
           <CameraView
@@ -117,7 +113,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F8F8",
   },
-  navbarTitle: { color: '#333', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
   cameraContainer: {
     flex: 3,
     justifyContent: "center",
