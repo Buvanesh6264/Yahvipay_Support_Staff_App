@@ -41,7 +41,6 @@ export default function AccessoriesScreen() {
           renderItem={({ item }) => (
             <Card style={styles.card}>
               <View style={styles.cardContent}>
-                {/* Image Display */}
                 <Image source={{ uri: item.image }} style={styles.image} />
                 
                 <View style={styles.details}>

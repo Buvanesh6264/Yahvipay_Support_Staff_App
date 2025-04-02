@@ -3,6 +3,7 @@ import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 
 import { Appbar, Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function UserParcelScreen() {
   const navigation = useNavigation();
@@ -49,6 +50,9 @@ export default function UserParcelScreen() {
       <Appbar.Header style={styles.navbar}>
         <Appbar.BackAction onPress={() => navigation.navigate('Home')}color="white" />
         <Appbar.Content title="Your Parcels" titleStyle={styles.navbarTitle} />
+        <TouchableOpacity style={styles.addButton}>
+          <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('createparcel')}/>
+        </TouchableOpacity>
       </Appbar.Header>
 
       {loading ? (
@@ -84,6 +88,7 @@ const styles = StyleSheet.create({
   navbar: { backgroundColor: '#007bff', elevation: 4 },
   navbarTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
   loader: { marginTop: 50 },
+  addButton: { padding: 10 },
   card: {
     marginHorizontal: 15,
     marginVertical: 10,
