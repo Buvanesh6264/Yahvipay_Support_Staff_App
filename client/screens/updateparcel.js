@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 const UpdateParcelScreen = ({ route }) => {
   const [agentid, setAgentid] = useState("");
   const [devices, setDevices] = useState([]);
+  const [Existingdevices, setExistingDevices] = useState([]);
   const [token, setToken] = useState(null);
   const [parcelNumber, setParcelNumber] = useState(null);
   const navigation = useNavigation();
@@ -44,7 +45,12 @@ const UpdateParcelScreen = ({ route }) => {
         const result = await response.json();
         if (response.ok) {
           setAgentid(result.data.agentid);
-          setDevices(result.data.devices || []);
+          setExistingDevices(prevDevices => {if (prevDevices.some((device) => device === result.data.devices)) {
+            Alert.alert("Duplicate Device", "This device has already been scanned.");
+            return prevDevices;
+          }
+          return [...prevDevices, ...(result.data.devices || [])];
+        });
         } else {
           Alert.alert("Error", result.message || "Failed to find parcel");
         }
@@ -83,7 +89,7 @@ const UpdateParcelScreen = ({ route }) => {
       return;
     }
 
-    const parcelData = { agentid, devices };
+    const parcelData = { agentid, devices,parcelNumber };
     try {
       const response = await fetch(`${apiUrl}/update/Updateparcel`, {
         method: "POST",
@@ -107,27 +113,51 @@ const UpdateParcelScreen = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <Text style={styles.title}>Update Parcel</Text>
-      <TextInput style={styles.input} placeholder="Agent ID" value={agentid} editable={false} />
-      <Button title="Scan Device" onPress={() => navigation.navigate("updateqrscan")} />
-      <FlatList
-        data={devices}
-        keyExtractor={(item) => item.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.deviceItemContainer}>
-            <Text style={styles.deviceItem}>Device ID: {item}</Text>
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => setDevices((prev) => prev.filter((device) => device !== item))}
-            >
-              <Text style={styles.removeButtonText}>Remove</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
-      <Button title="Update Parcel" onPress={handleUpdateParcel} />
-    </SafeAreaView>
+  <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+  <Text style={styles.title}>Update Parcel</Text>
+  <TextInput style={styles.input} placeholder="Agent ID" value={agentid} editable={false} />
+
+  <Text style={styles.sectionTitle}>Existing Parcel Devices</Text>
+  {Existingdevices.length === 0 ? (
+    <Text style={styles.noDevicesText}>No existing devices in this parcel.</Text>
+  ) : (
+    <FlatList
+      data={Existingdevices}
+      keyExtractor={(item) => item.toString()}
+      renderItem={({ item }) => (
+        <View style={styles.deviceItemContainer}>
+          <Text style={styles.deviceItem}>Device ID: {item}</Text>
+        </View>
+      )}
+    />
+  )}
+
+  <Text style={styles.sectionTitle}>Scanned Devices</Text>
+  <Button title="Scan Device" onPress={() => navigation.navigate("updateqrscan")} />
+  
+  {devices.length === 0 ? (
+    <Text style={styles.noDevicesText}>No new devices scanned.</Text>
+  ) : (
+    <FlatList
+      data={devices}
+      keyExtractor={(item) => item.toString()}
+      renderItem={({ item }) => (
+        <View style={styles.deviceItemContainer}>
+          <Text style={styles.deviceItem}>Device ID: {item}</Text>
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => setDevices((prev) => prev.filter((device) => device !== item))}
+          >
+            <Text style={styles.removeButtonText}>Remove</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    />
+  )}
+
+  <Button title="Update Parcel" onPress={handleUpdateParcel} />
+</SafeAreaView>
+
   );
 };
 
@@ -170,6 +200,17 @@ const styles = StyleSheet.create({
   removeButtonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 10,
+  },
+  noDevicesText: {
+    textAlign: "center",
+    fontStyle: "italic",
+    color: "#888",
+    marginBottom: 10,
   },
 });
 
