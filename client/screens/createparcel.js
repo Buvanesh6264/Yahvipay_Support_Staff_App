@@ -118,7 +118,7 @@ const CreateParcelScreen = ({ route }) => {
 
     console.log("Sending data:", JSON.stringify(parcelData)); 
     try {
-      const response = await fetch(`${apiUrl}/addparcel/addparcel`, {
+      const response = await fetch(`${apiUrl}/parcel/addparcel`, {
         method: "POST",
         headers: {
           Authorization: token,
@@ -143,22 +143,6 @@ const CreateParcelScreen = ({ route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Add Parcel</Text>
-      <TextInput style={styles.input} placeholder="Pickup Location" value={pickupLocation} onChangeText={setPickupLocation} />
-      <TextInput style={styles.input} placeholder="Destination" value={destination} onChangeText={setDestination} />
-      <TextInput style={styles.input} placeholder="Agent ID" value={agentid} onChangeText={setAgentid} />
-      <TextInput style={styles.input} placeholder="Accessory ID" value={accessoryId} onChangeText={setAccessoryId} />
-      <TextInput style={styles.input} placeholder="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
-      <Button title="Add Accessory" onPress={handleAddAccessory} />
-      <FlatList
-        data={accessories}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Text>Accessory: {item.id}, Quantity: {item.quantity}</Text>
-        )}
-      />
-      <TextInput style={styles.input} placeholder="Receiver" value={reciver} onChangeText={setReciver} />
-      <TextInput style={styles.input} placeholder="Sender" value={sender} onChangeText={setSender} />
-
       <Button title="Scan Device" onPress={() => navigation.navigate("parcelqrscan")} />
 
       <FlatList
@@ -176,8 +160,21 @@ const CreateParcelScreen = ({ route }) => {
           </View>
         )}
       />
-
-
+      <TextInput style={styles.input} placeholder="Pickup Location" value={pickupLocation} onChangeText={setPickupLocation} />
+      <TextInput style={styles.input} placeholder="Destination" value={destination} onChangeText={setDestination} />
+      <TextInput style={styles.input} placeholder="Agent ID" value={agentid} onChangeText={setAgentid} />
+      <TextInput style={styles.input} placeholder="Accessory ID" value={accessoryId} onChangeText={setAccessoryId} />
+      <TextInput style={styles.input} placeholder="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
+      <Button title="Add Accessory" onPress={handleAddAccessory} />
+      <FlatList
+        data={accessories}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <Text>Accessory: {item.id}, Quantity: {item.quantity}</Text>
+        )}
+      />
+      <TextInput style={styles.input} placeholder="Receiver" value={reciver} onChangeText={setReciver} />
+      <TextInput style={styles.input} placeholder="Sender" value={sender} onChangeText={setSender} />
       <Button title="Add Parcel" onPress={handleAddParcel} />
     </SafeAreaView>
   );

@@ -91,7 +91,7 @@ const UpdateParcelScreen = ({ route }) => {
 
     const parcelData = { agentid, devices,parcelNumber };
     try {
-      const response = await fetch(`${apiUrl}/update/Updateparcel`, {
+      const response = await fetch(`${apiUrl}/parcel/Updateparcel`, {
         method: "POST",
         headers: {
           Authorization: token,

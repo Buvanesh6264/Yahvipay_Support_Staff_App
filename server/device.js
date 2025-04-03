@@ -30,32 +30,6 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-
-const authenticatetoken = (req, res, next) => {
-  const token = req.headers["authorization"];
-  if (!token) {
-    return res.status(401).json({
-      status: "error",
-      message: "Unauthorized",
-      description: "No token provided",
-      status_code: 401,
-    });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({
-        status: "error",
-        message: "Forbidden",
-        description: "Invalid token",
-        status_code: 403,
-      });
-    }
-    req.user = user;
-    next();
-  });
-};
-
 router.get("/userdevices", authenticateToken, async (req, res) => {
   try {
     const supportid = req.user.supportid;
@@ -109,7 +83,7 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
     const collection = db.collection(deviceCollection);
-
+    const type = "Device";
     const existingDevice = await collection.findOne({ deviceid });
 
     if (existingDevice) {
@@ -119,14 +93,15 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
         status_code: 400,
       });
     }
-    const inventory = status === "available";
+    const Inventory = status === "available";
     await collection.insertOne({
       devicename,
       deviceid,
       status,
       supportid,
       agentid: status === "available" ? "" : agentid,
-      inventory,
+      Inventory,
+      type,
       image: image || "",
     });
 
@@ -174,113 +149,111 @@ router.get("/alldevices", async (req, res) => {
   }
 });
 
+// router.post("/updatedevice", authenticateToken, async (req, res) => {
+//   try {
+//     const { deviceid, devicename, status, agentid, userid, image } = req.body;
+//     const errors = [];
+//     const supportid = req.user.supportid;
+//     const validStatuses = ["available", "assigned", "delivered", "damaged"];
 
+//     if (!deviceid) {
+//       errors.push({ field: "deviceid", error: "Device ID is required" });
+//     }
 
-router.post("/updatedevice", authenticateToken, async (req, res) => {
-  try {
-    const { deviceid, devicename, status, agentid, userid, image } = req.body;
-    const errors = [];
-    const supportid = req.user.supportid;
-    const validStatuses = ["available", "assigned", "delivered", "damaged"];
+//     if (status && !validStatuses.includes(status)) {
+//       errors.push({ field: "status", error: `Invalid status. Allowed: ${validStatuses.join(", ")}` });
+//     }
 
-    if (!deviceid) {
-      errors.push({ field: "deviceid", error: "Device ID is required" });
-    }
+//     if (status !== "available" && (!supportid || !agentid || !userid)) {
+//       errors.push({ field: "supportid/agentid/userid", error: "Required when status is not 'available'" });
+//     }
 
-    if (status && !validStatuses.includes(status)) {
-      errors.push({ field: "status", error: `Invalid status. Allowed: ${validStatuses.join(", ")}` });
-    }
+//     if (image && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(image)) {
+//       errors.push({ field: "image", error: "Invalid image URL format" });
+//     }
 
-    if (status !== "available" && (!supportid || !agentid || !userid)) {
-      errors.push({ field: "supportid/agentid/userid", error: "Required when status is not 'available'" });
-    }
+//     if (errors.length > 0) {
+//       return res.status(400).json({
+//         status: "error",
+//         message: "Invalid input",
+//         description: "Invalid syntax for this request was provided",
+//         errors: errors,
+//         status_code: 400,
+//       });
+//     }
 
-    if (image && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(image)) {
-      errors.push({ field: "image", error: "Invalid image URL format" });
-    }
+//     await client.connect();
+//     const db = client.db(dbName);
+//     const collection = db.collection(deviceCollection);
 
-    if (errors.length > 0) {
-      return res.status(400).json({
-        status: "error",
-        message: "Invalid input",
-        description: "Invalid syntax for this request was provided",
-        errors: errors,
-        status_code: 400,
-      });
-    }
+//     const existingDevice = await collection.findOne({ deviceid });
+//     if (!existingDevice) {
+//       return res.status(404).json({
+//         status: "error",
+//         message: "Device not found",
+//         status_code: 404,
+//       });
+//     }
 
-    await client.connect();
-    const db = client.db(dbName);
-    const collection = db.collection(deviceCollection);
+//     const updateData = {};
+//     if (devicename) updateData.devicename = devicename;
+//     if (status) updateData.status = status;
+//     if (image) updateData.image = image;
+//     if (status !== "available") {
+//       updateData.supportid = supportid;
+//       updateData.agentid = agentid;
+//       updateData.userid = userid;
+//     }
 
-    const existingDevice = await collection.findOne({ deviceid });
-    if (!existingDevice) {
-      return res.status(404).json({
-        status: "error",
-        message: "Device not found",
-        status_code: 404,
-      });
-    }
+//     await collection.updateOne({ deviceid }, { $set: updateData });
+//     const updatedDevice = await collection.findOne({ deviceid });
 
-    const updateData = {};
-    if (devicename) updateData.devicename = devicename;
-    if (status) updateData.status = status;
-    if (image) updateData.image = image;
-    if (status !== "available") {
-      updateData.supportid = supportid;
-      updateData.agentid = agentid;
-      updateData.userid = userid;
-    }
+//     res.status(200).json({
+//       status: "success",
+//       message: "Device updated successfully",
+//       updatedDevice,
+//       status_code: 200,
+//     });
+//   } catch (error) {
+//     console.error("Device Update Error:", error);
+//     res.status(500).json({
+//       status: "error",
+//       message: "Internal server error",
+//       description: "Something went wrong on the server",
+//       status_code: 500,
+//     });
+//   } finally {
+//     await client.close();
+//   }
+// });
 
-    await collection.updateOne({ deviceid }, { $set: updateData });
-    const updatedDevice = await collection.findOne({ deviceid });
-
-    res.status(200).json({
-      status: "success",
-      message: "Device updated successfully",
-      updatedDevice,
-      status_code: 200,
-    });
-  } catch (error) {
-    console.error("Device Update Error:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-      description: "Something went wrong on the server",
-      status_code: 500,
-    });
-  } finally {
-    await client.close();
-  }
-});
-
-router.get("/availabledevicescount", async (req, res) => {
-    try {  
-      await client.connect();
-      const db = client.db(dbName);
-      const collection = db.collection(deviceCollection);
+// router.get("/availabledevicescount", async (req, res) => {
+//     try {  
+//       await client.connect();
+//       const db = client.db(dbName);
+//       const collection = db.collection(deviceCollection);
   
-      const device = await collection.find({status:"available"}).toArray();
-      console.log(device);
-      const count = device.length
-      res.status(200).json({
-        status: "success",
-        message: "retrieved successfully",
-        data: count,
-        status_code: 200,
-      });
-    } catch (error) {
-      console.error("Fetch Support error:", error);
-      res.status(500).json({
-        status: "error",
-        message: "Internal server error",
-        description: "Something went wrong on the server",
-        status_code: 500,
-      });
-    }finally {
-      await client.close();
-    }
-  });
+//       const device = await collection.find({status:"available"}).toArray();
+//       console.log(device);
+//       const count = device.length
+//       res.status(200).json({
+//         status: "success",
+//         message: "retrieved successfully",
+//         data: count,
+//         status_code: 200,
+//       });
+//     } catch (error) {
+//       console.error("Fetch Support error:", error);
+//       res.status(500).json({
+//         status: "error",
+//         message: "Internal server error",
+//         description: "Something went wrong on the server",
+//         status_code: 500,
+//       });
+//     }finally {
+//       await client.close();
+//     }
+//   });
 
 
 router.get('/get',(req,res)=>{

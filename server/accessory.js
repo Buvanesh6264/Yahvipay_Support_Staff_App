@@ -25,7 +25,6 @@ router.get("/allaccessory", async (req, res) => {
             status_code: 200,
         });
 
-        client.close();
     } catch (error) {
         console.error("Fetch Accessories Error:", error);
         res.status(500).json({
@@ -34,6 +33,8 @@ router.get("/allaccessory", async (req, res) => {
             description: "Something went wrong on the server",
             status_code: 500,
         });
+    }finally {
+        await client.close();
     }
 });
 
@@ -63,7 +64,6 @@ router.get("/:accessoriesid", async (req, res) => {
             status_code: 200,
         });
 
-        client.close();
     } catch (error) {
         console.error("Fetch Accessory Error:", error);
         res.status(500).json({
@@ -72,6 +72,8 @@ router.get("/:accessoriesid", async (req, res) => {
             description: "Something went wrong on the server",
             status_code: 500,
         });
+    }finally {
+        await client.close();
     }
 });
 

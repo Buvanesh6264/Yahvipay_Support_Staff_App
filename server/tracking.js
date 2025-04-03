@@ -82,34 +82,34 @@ router.post("/generate", async (req, res) => {
 });
 
 
-router.get("/trackingcount", async (req, res) => {
-  try {
-    // const supportid = req.user.supportid;
+// router.get("/trackingcount", async (req, res) => {
+//   try {
+//     // const supportid = req.user.supportid;
 
-    await client.connect();
-    const db = client.db(dbName);
-    const collection = db.collection(trackingCollection);
-    const parcels = await collection.find({ status: { $ne: "Out for Delivery" } }).toArray();
-    const count =parcels.length;
-    console.log(count)
-    res.status(200).json({
-      status: "success",
-      message: "Parcels count retrieved successfully",
-      data: count,
-      status_code: 200,
-    });
-  } catch (error) {
-    console.error("Fetch Support Parcels Error:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-      description: "Something went wrong on the server",
-      status_code: 500,
-    });
-  }finally {
-    await client.close();
-  }
-});
+//     await client.connect();
+//     const db = client.db(dbName);
+//     const collection = db.collection(trackingCollection);
+//     const parcels = await collection.find({ status: { $ne: "Out for Delivery" } }).toArray();
+//     const count =parcels.length;
+//     console.log(count)
+//     res.status(200).json({
+//       status: "success",
+//       message: "Parcels count retrieved successfully",
+//       data: count,
+//       status_code: 200,
+//     });
+//   } catch (error) {
+//     console.error("Fetch Support Parcels Error:", error);
+//     res.status(500).json({
+//       status: "error",
+//       message: "Internal server error",
+//       description: "Something went wrong on the server",
+//       status_code: 500,
+//     });
+//   }finally {
+//     await client.close();
+//   }
+// });
 
 router.get("/:parcelNumber", async (req, res) => {
     try {
@@ -161,10 +161,12 @@ router.get("/:parcelNumber", async (req, res) => {
         }
       });
   
-      client.close();
     } catch (error) {
       console.error("Fetch Tracking Error:", error);
       res.status(500).json({ status: "error", message: "Internal server error." });
+    }
+    finally {
+      await client.close();
     }
   });
   

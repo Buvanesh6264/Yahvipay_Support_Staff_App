@@ -15,20 +15,19 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const deviceRes = await fetch(`${apiUrl}/device/availabledevicescount`);
-        const parcelRes = await fetch(`${apiUrl}/parcel/parcelcount`);
-        const tracking = await fetch(`${apiUrl}/tracking/trackingcount`);
-
-        const deviceData = await deviceRes.json();
-        const parcelData = await parcelRes.json();
-        const trackingData = await tracking.json();
-
-        if (deviceRes.ok && parcelRes.ok) {
-          setDeviceCount(deviceData.data || 0);
-          setParcelCount(parcelData.data || 0);
-          setPendingDeliveries(trackingData.data || 0);
+        const res = await fetch(`${apiUrl}/dashboardcounts`);
+        const data = await res.json(); 
+        if (res.ok) { 
+          setDeviceCount(data.data.availableDevicesCount || 0);
+          setParcelCount(data.data.parcelCount || 0);
+          setPendingDeliveries(data.data.trackingCount || 0);
         } else {
-          console.error("Error fetching counts:", deviceData.message, parcelData.message);
+          console.error(
+            "Error fetching counts:",
+            data.data.availableDevicesCount,
+            data.data.parcelCount,
+            data.data.trackingCount
+          );
         }
       } catch (error) {
         console.error("Fetch error:", error);
@@ -36,9 +35,10 @@ export default function HomeScreen() {
         setLoading(false);
       }
     };
-
+  
     fetchCounts();
   }, []);
+  
 
   return (
     <SafeAreaView style={styles.safeContainer}>

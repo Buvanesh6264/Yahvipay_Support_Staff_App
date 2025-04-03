@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { TextInput, Button, Text, Checkbox } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
@@ -13,19 +13,29 @@ export default function LoginScreen() {
       password: "",  
     },
   });
-  
+
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); 
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-  console.log(apiUrl)
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const token = await AsyncStorage.getItem("token");
+      if (token) {
+        navigation.replace("MainApp");
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
   const onSubmit = async (data) => {
     setLoading(true);
     setErrorMessage(""); 
 
     try {
-      const response = await fetch(apiUrl+"/user/login", {
+      const response = await fetch(apiUrl + "/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -35,8 +45,7 @@ export default function LoginScreen() {
       if (result.status === "success") {
         console.log("Login Successful:", result);
         await AsyncStorage.setItem("token", result.token);
-        navigation.navigate("MainApp");
-      } else {
+        navigation.replace("MainApp"); 
         console.error(result.message);
         setErrorMessage(result.message); 
       }

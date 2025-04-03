@@ -100,6 +100,8 @@ router.post("/register", async (req, res) => {
       description: "Something went wrong on the server",
       status_code: 400
     });
+  }finally {
+    await client.close();
   }
 });
 
@@ -173,6 +175,9 @@ router.post("/login", async (req, res) => {
       status_code: 400
     });
   }
+  finally {
+    await client.close();
+  }
 });
 
 router.get("/userdata", async (req, res) => {
@@ -229,6 +234,9 @@ router.get("/userdata", async (req, res) => {
       message: "Internal server error",
       status_code: 500,
     });
+  }
+  finally {
+    await client.close();
   }
 });
 
