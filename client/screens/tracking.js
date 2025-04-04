@@ -17,7 +17,13 @@ export default function TrackingScreen() {
 
   const fetchTrackingDetails = async () => {
     try {
-      const response = await fetch(apiUrl + `/tracking/${parcelNumber}`);
+      const response = await fetch(apiUrl + `/tracking/parcelNumber`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ parcelNumber }),
+      });
       const data = await response.json();
       if (data.status === 'success') {
         setTrackingData(data.data);

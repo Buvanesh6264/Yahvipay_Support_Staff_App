@@ -111,10 +111,9 @@ router.post("/generate", async (req, res) => {
 //   }
 // });
 
-router.get("/:parcelNumber", async (req, res) => {
+router.post("/parcelNumber", async (req, res) => {
     try {
-      const { parcelNumber } = req.params;
-      const client = new MongoClient(uri);
+      const { parcelNumber } = req.body;
       
       await client.connect();
       const db = client.db(dbName);

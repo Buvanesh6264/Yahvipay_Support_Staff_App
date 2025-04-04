@@ -290,7 +290,6 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
   }
 });
 
-
 router.get("/userparcels", authenticatetoken, async (req, res) => {
   try {
     const supportid = req.user.supportid;
@@ -318,7 +317,6 @@ router.get("/userparcels", authenticatetoken, async (req, res) => {
     if (client) await client.close();
   }
 });
-
 
 router.get("/allparcels", async (req, res) => {
     try {
@@ -380,10 +378,57 @@ router.get("/allparcels", async (req, res) => {
 //       await client.close();
 //     }
 //   });
-  
-  router.get("/:parcelNumber", async (req, res) => {
+
+router.get("/agentid", async (req, res) => {
+  try {
+    const { agentid } = req.body;
+
+    if (!agentid) {
+      return res.status(400).json({
+        status: "error",
+        message: "Missing agentid",
+        description: "Agent ID is required as a query parameter",
+        status_code: 400,
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(parcelCollection);
+
+    const parcels = await collection.find({ agentid }).toArray();
+
+    if (parcels.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "No parcels found",
+        description: "No parcels found for the given agent ID",
+        status_code: 404,
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Parcels retrieved successfully",
+      data: parcels,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Parcel Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+router.post("/parcelNumber", async (req, res) => {
     try {
-        const { parcelNumber } = req.params;
+        const { parcelNumber } = req.body;
         
         await client.connect();
         const db = client.db(dbName);

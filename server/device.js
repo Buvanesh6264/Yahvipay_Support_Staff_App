@@ -260,9 +260,9 @@ router.get('/get',(req,res)=>{
   res.send('send');
 })
 
-router.get("/:deviceid", async (req, res) => {
+router.post("/deviceid", async (req, res) => {
   try {
-      const { deviceid } = req.params;
+      const { deviceid } = req.body;
       // console.log(req.params)
       await client.connect();
       const db = client.db(dbName);

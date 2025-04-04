@@ -23,12 +23,29 @@ export default function LoginScreen() {
   useEffect(() => {
     const checkLoginStatus = async () => {
       const token = await AsyncStorage.getItem("token");
-      if (token) {
-        navigation.navigate("MainApp");
+      if (!token) return;
+  
+      try {
+        const response = await fetch(apiUrl + "/user/validate", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        const result = await response.json();
+        if (result.status === "success") {
+          navigation.replace("MainApp");
+        } else {
+          await AsyncStorage.removeItem("token");
+        }
+      } catch (error) {
+        console.error("Token validation error:", error);
+        await AsyncStorage.removeItem("token");
       }
     };
+  
     checkLoginStatus();
   }, []);
+  
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -46,7 +63,7 @@ export default function LoginScreen() {
         console.log("Login Successful:", result);
         await AsyncStorage.setItem("token", result.token);
         navigation.replace("MainApp"); 
-        console.error(result.message);
+        // console.error(result.message);
         setErrorMessage(result.message); 
       }
     } catch (error) {

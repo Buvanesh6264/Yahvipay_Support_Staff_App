@@ -38,9 +38,9 @@ router.get("/allaccessory", async (req, res) => {
     }
 });
 
-router.get("/:accessoriesid", async (req, res) => {
+router.get("/accessoriesid", async (req, res) => {
     try {
-        const { accessoriesid } = req.params;
+        const { accessoriesid } = req.body;
 
         await client.connect();
         const db = client.db(dbName);

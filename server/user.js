@@ -16,6 +16,32 @@ const client = new MongoClient(uri);
 function generateAccessToken(supportid) {
   return jwt.sign({ supportid }, JWT_SECRET, { expiresIn: "2h" });
 }
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; 
+
+  if (!token) {
+    return res.status(401).json({
+      status: "error",
+      message: "Unauthorized",
+      description: "No token provided",
+      status_code: 401,
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({
+        status: "error",
+        message: "Forbidden",
+        description: "Invalid token",
+        status_code: 403,
+      });
+    }
+    req.user = user; 
+    next();
+  });
+};
 
 router.post("/register", async (req, res) => {
   try {
@@ -240,5 +266,13 @@ router.get("/userdata", async (req, res) => {
   }
 });
 
+router.get("/validate", authenticateToken, (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Login successful",
+    user: req.user,
+    status_code: 200
+})
+});
 
 module.exports = router;

@@ -24,7 +24,14 @@ const ParcelDetail = ({ route }) => {
   useEffect(() => {
     const fetchParcelDetails = async () => {
       try {
-        const response = await fetch(`${apiUrl}/parcel/${parcelNumber}`);
+        const response = await fetch(`${apiUrl}/parcel/parcelNumber`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ parcelNumber }),
+        });
+        
         const data = await response.json();
         if (response.ok) {
           setParcel(data.data);

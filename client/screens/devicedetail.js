@@ -14,7 +14,13 @@ const DeviceDetail = ({ route }) => {
 
   const fetchDeviceDetails = async () => {
     try {
-      const response = await fetch(`${apiUrl}/device/${deviceid}`);
+      const response = await fetch(`${apiUrl}/device/deviceid`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ deviceid }),
+      });
       const data = await response.json();
       setDevice(data.device || null);
     } catch (error) {
