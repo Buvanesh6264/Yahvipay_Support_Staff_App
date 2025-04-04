@@ -69,7 +69,7 @@ export default function HomeScreen() {
 
       <Section
         title="Parcel"
-        items={["Add Parcel", "All Parcel", "Your Parcel"]}
+        items={["Create Parcel", "All Parcel", "Your Parcel"]}
         screens={[{ name: "parcels", screen: "createparcel" }, { name: "parcels" ,screen: "parcels"}, {  name: "parcels" ,screen: "userspakage" }]}
         navigation={navigation} 
       />

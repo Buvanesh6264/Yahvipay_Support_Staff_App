@@ -46,8 +46,9 @@ const authenticatetoken = (req, res, next) => {
 
 router.post("/addparcel", authenticatetoken, async (req, res) => {
     try {
-        const { pickupLocation, destination, agentid, devices, accessories, reciver, sender } = req.body;
+        const { pickupLocation, destination, agentid, devices, reciver, sender } = req.body;
         const supportid = req.user.supportid;
+        const accessories = [];
         console.log(req.body,'data')
         console.log(req.user.id,'userid')
         if (!pickupLocation) {
@@ -78,7 +79,6 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
         await client.connect();
         const db = client.db(dbName);
         const Device = db.collection(devicesCollection);
-        const Accessory = db.collection(accessoriesCollection);
         const Parcel = db.collection(parcelCollection);
 
         for (let deviceid of devices) {
@@ -98,21 +98,7 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
                 });
             }
         }
-
-        for (let { id, quantity } of accessories) {
-          console.log(typeof quantity,'quantity')
-          console.log(id,quantity,'acdata')
-            const accessory = await Accessory.findOne({ accessoriesid: id });
-            console.log(accessory,'acces data')
-            if (!accessory || accessory.quantity < quantity) {
-                return res.status(400).json({
-                    status: "error",
-                    message: `Accessory ${id} is out of stock or insufficient quantity`,
-                    status_code: 400,
-                });
-            }
-        }
-
+       
         const parcelNumber = generateParcelNumber();
 
         await Parcel.insertOne({
@@ -143,47 +129,7 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
                 )
             )
         );
-
-        await Promise.all(
-          accessories.map(async ({ id, quantity }) => {
-              const accessory = await Accessory.findOne({ accessoriesid: id });
-      
-              if (!accessory) {
-                  return res.status(400).json({
-                      status: "error",
-                      message: `Accessory ${id} not found`,
-                      status_code: 400,
-                  });
-              }
-      
-              let currentQuantity = parseInt(accessory.quantity); 
-              let decrementQuantity = parseInt(quantity); 
-      
-              if (isNaN(currentQuantity) || isNaN(decrementQuantity)) {
-                  return res.status(400).json({
-                      status: "error",
-                      message: `Invalid quantity for accessory ${id}`,
-                      status_code: 400,
-                  });
-              }
-      
-              if (currentQuantity < decrementQuantity) {
-                  return res.status(400).json({
-                      status: "error",
-                      message: `Not enough stock for accessory ${id}`,
-                      status_code: 400,
-                  });
-              }
-      
-              let newQuantity = (currentQuantity - decrementQuantity).toString(); 
-      
-              await Accessory.updateOne(
-                  { accessoriesid: id },
-                  { $set: { quantity: newQuantity } } 
-              );
-          })
-      );
-      
+   
 
         res.status(201).json({
             status: "success",
@@ -206,14 +152,14 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
 
 router.post("/Updateparcel", authenticatetoken, async (req, res) => {
   try {
-      const { agentid, devices, parcelNumber } = req.body;
+      const { agentid, devices, accessories, parcelNumber } = req.body;
       const supportid = req.user.supportid;
-      console.log(req.body)
+      console.log(req.body);
 
-      if (!devices || !Array.isArray(devices) || devices.length === 0) {
+      if ((!devices || devices.length === 0) && (!accessories || accessories.length === 0)) {
           return res.status(400).json({
               status: "error",
-              message: "At least one device ID is required",
+              message: "At least one device or accessory is required",
               status_code: 400,
           });
       }
@@ -222,6 +168,7 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
       const db = client.db(dbName);
       const Device = db.collection(devicesCollection);
       const Parcel = db.collection(parcelCollection);
+      const Accessory = db.collection(accessoriesCollection);
 
       const parcel = await Parcel.findOne({ parcelNumber });
       if (!parcel) {
@@ -250,11 +197,26 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
           }
       }
 
+      for (let { id, quantity } of accessories) {
+          const accessory = await Accessory.findOne({ accessoriesid: id });
+
+          if (!accessory || accessory.quantity < quantity) {
+              return res.status(400).json({
+                  status: "error",
+                  message: `Accessory ${id} is out of stock or insufficient quantity`,
+                  status_code: 400,
+              });
+          }
+      }
+
       await Parcel.updateOne(
           { parcelNumber },
           {
               $set: { agentid, supportid },
-              $push: { devices: { $each: devices } } 
+              $push: { 
+                  devices: { $each: devices || [] },
+                  accessories: { $each: accessories || [] } 
+              }
           }
       );
 
@@ -273,6 +235,39 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
               )
           )
       );
+      if (accessories.length > 0) {
+      await Promise.all(
+          accessories.map(async ({ id, quantity }) => {
+              const accessory = await Accessory.findOne({ accessoriesid: id });
+
+              if (!accessory) {
+                  return res.status(400).json({
+                      status: "error",
+                      message: `Accessory ${id} not found`,
+                      status_code: 400,
+                  });
+              }
+
+              let currentQuantity = parseInt(accessory.quantity, 10);
+              let decrementQuantity = parseInt(quantity, 10);
+
+              if (isNaN(currentQuantity) || isNaN(decrementQuantity) || currentQuantity < decrementQuantity) {
+                  return res.status(400).json({
+                      status: "error",
+                      message: `Not enough stock for accessory ${id}`,
+                      status_code: 400,
+                  });
+              }
+
+              let newQuantity = currentQuantity - decrementQuantity;
+
+              await Accessory.updateOne(
+                { accessoriesid: id },
+                { $set: { quantity: newQuantity.toString() } } 
+            );            
+          })
+      );
+    }
 
       const updatedParcel = await Parcel.findOne({ parcelNumber });
       console.log("Updated Parcel:", updatedParcel);
@@ -284,16 +279,17 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
           status_code: 201,
       });
   } catch (error) {
-      console.error("Parcel Addition Error:", error);
+      console.error("Parcel Update Error:", error);
       res.status(500).json({
           status: "error",
           message: "Internal server error",
           status_code: 500,
       });
   } finally {
-      await client.close();
+    if (client) await client.close();
   }
 });
+
 
 router.get("/userparcels", authenticatetoken, async (req, res) => {
   try {
@@ -319,7 +315,7 @@ router.get("/userparcels", authenticatetoken, async (req, res) => {
       status_code: 500,
     });
   }finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -351,7 +347,7 @@ router.get("/allparcels", async (req, res) => {
         status_code: 400,
       });
     }finally {
-      await client.close();
+      if (client) await client.close();
     }
 });
 
@@ -421,7 +417,7 @@ router.get("/allparcels", async (req, res) => {
         status_code: 400,
         });
     }finally {
-      await client.close();
+        if (client) await client.close();
     }
 });
 

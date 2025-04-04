@@ -24,7 +24,7 @@ export default function LoginScreen() {
     const checkLoginStatus = async () => {
       const token = await AsyncStorage.getItem("token");
       if (token) {
-        navigation.replace("MainApp");
+        navigation.navigate("MainApp");
       }
     };
     checkLoginStatus();

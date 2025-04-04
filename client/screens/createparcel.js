@@ -10,9 +10,6 @@ const CreateParcelScreen = ({ route }) => {
   const [agentid, setAgentid] = useState("");
   const [devices, setDevices] = useState([]);
   // const [scandevices, setScanDevices] = useState([]);
-  const [accessoryId, setAccessoryId] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [accessories, setAccessories] = useState([]);
   const [reciver, setReciver] = useState("");
   const [sender, setSender] = useState("");
   const [token, setToken] = useState(null);
@@ -20,8 +17,7 @@ const CreateParcelScreen = ({ route }) => {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
   useEffect(()=>{
     console.log(devices,'useeffect')
-    console.log(accessories,'accesory')
-  },[devices,accessories]);
+  },[devices]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -70,30 +66,7 @@ const CreateParcelScreen = ({ route }) => {
   //     setScanDevices("");  
   //   }
   // };
-  
-  const handleAddAccessory = async () => {
-    if (!accessoryId || !quantity) {
-      Alert.alert("Error", "Please enter both Accessory ID and Quantity.");
-      return;
-    }
-    try {
-      const response = await fetch(`${apiUrl}/accessory/${accessoryId}`);
-      const data = await response.json();
-      console.log(data)
-  
-      if (data.instock===false) {
-        Alert.alert("Error", "Accessory is not available.");
-        return;
-      }
-  
-      setAccessories((prev) => [...prev, { id: accessoryId, quantity }]);
-      setAccessoryId("");
-      setQuantity("");
-    }catch (error) {
-      console.error("Error checking accessory availability:", error);
-      Alert.alert("Error", "Failed to check availability.");
-    }
-  };
+
   
   const handleAddParcel = useCallback(async () => {
     if (!token) {
@@ -111,7 +84,6 @@ const CreateParcelScreen = ({ route }) => {
       destination,
       agentid,
       devices,
-      accessories: accessories,
       reciver,
       sender,
     };
@@ -138,11 +110,11 @@ const CreateParcelScreen = ({ route }) => {
     } catch (error) {
       Alert.alert("Error", "Something went wrong");
     }
-  }, [token, pickupLocation, destination, agentid, devices, accessories, reciver, sender]);
+  }, [token, pickupLocation, destination, agentid, devices, reciver, sender]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Add Parcel</Text>
+      <Text style={styles.title}>Create Parcel</Text>
       <Button title="Scan Device" onPress={() => navigation.navigate("parcelqrscan")} />
 
       <FlatList
@@ -163,16 +135,6 @@ const CreateParcelScreen = ({ route }) => {
       <TextInput style={styles.input} placeholder="Pickup Location" value={pickupLocation} onChangeText={setPickupLocation} />
       <TextInput style={styles.input} placeholder="Destination" value={destination} onChangeText={setDestination} />
       <TextInput style={styles.input} placeholder="Agent ID" value={agentid} onChangeText={setAgentid} />
-      <TextInput style={styles.input} placeholder="Accessory ID" value={accessoryId} onChangeText={setAccessoryId} />
-      <TextInput style={styles.input} placeholder="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
-      <Button title="Add Accessory" onPress={handleAddAccessory} />
-      <FlatList
-        data={accessories}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Text>Accessory: {item.id}, Quantity: {item.quantity}</Text>
-        )}
-      />
       <TextInput style={styles.input} placeholder="Receiver" value={reciver} onChangeText={setReciver} />
       <TextInput style={styles.input} placeholder="Sender" value={sender} onChangeText={setSender} />
       <Button title="Add Parcel" onPress={handleAddParcel} />

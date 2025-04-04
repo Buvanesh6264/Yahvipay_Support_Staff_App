@@ -18,6 +18,7 @@ const ProfilePage = () => {
         if (!token) {
           console.error("No token found");
           setLoading(false);
+          navigation.navigate("Login");
           return;
         }
         const response = await fetch(apiUrl+"/user/userdata", {

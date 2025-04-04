@@ -31,6 +31,27 @@ export default function UpdateScanner({ navigation }) {
   const handleBarcodeScanned = async ({ data }) => {
     setScanned(true);
   console.log(data)
+  if(data.startsWith("AC")){
+  try {
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/accessory/${data}`);
+    const result = await response.json();
+    console.log(result)
+    if (response.ok && result.data) {
+      console.log(result.data.instock)
+      if (result.data.instock) {  
+          navigation.navigate("UpdateParcel", { scannedDevice: { id: data, status: result.data.instock ,type:"Accesory"} });
+      } else {
+        Alert.alert("Error", `Accesory ${data} is not available.`);
+      }
+    } else {
+            Alert.alert("New Accesory", `Device ID: ${data} not found.Add the Accesory`);
+          }
+  } catch (error) {
+    console.error("Error checking device:", error);
+    Alert.alert("Error", "Could not check device. Try again.");
+  }
+}
+else{
     try {
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/${data}`);
       const result = await response.json();
@@ -39,7 +60,7 @@ export default function UpdateScanner({ navigation }) {
       if (response.ok && result.device) {
         console.log(result.device.status)
         if (result.device.status === "available") {
-            navigation.navigate("UpdateParcel", { scannedDevice: { id: data, status: result.device.status } });
+            navigation.navigate("UpdateParcel", { scannedDevice: { id: data, status: result.device.status ,type:"Device"} });
         } else {
           Alert.alert("Error", `Device ${data} is not available.`);
         }
@@ -50,6 +71,7 @@ export default function UpdateScanner({ navigation }) {
       console.error("Error checking device:", error);
       Alert.alert("Error", "Could not check device. Try again.");
     }
+  }
   };
   
   

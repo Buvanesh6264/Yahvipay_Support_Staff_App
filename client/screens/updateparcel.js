@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TextInput, Button, Alert, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar } from "react-native";
+import { View, Text, TextInput, Button, Alert, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar,Modal  } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 
 const UpdateParcelScreen = ({ route }) => {
   const [agentid, setAgentid] = useState("");
   const [devices, setDevices] = useState([]);
+  const [accessories, setAccessories] = useState("");
   const [Existingdevices, setExistingDevices] = useState([]);
+  const [ExistingAccessories, setExistingAccessories] = useState([]);
   const [token, setToken] = useState(null);
   const [parcelNumber, setParcelNumber] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentAccessoryId, setCurrentAccessoryId] = useState("");
+  const [quantity, setQuantity] = useState("");
   const navigation = useNavigation();
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -51,6 +56,9 @@ const UpdateParcelScreen = ({ route }) => {
           }
           return [...prevDevices, ...(result.data.devices || [])];
         });
+        setExistingAccessories(prevDevices => {
+        return [...prevDevices, ...(result.data.accessories || [])];
+      });
         } else {
           Alert.alert("Error", result.message || "Failed to find parcel");
         }
@@ -63,33 +71,55 @@ const UpdateParcelScreen = ({ route }) => {
 
   useEffect(() => {
     if (route.params?.scannedDevice) {
-      const { id, status } = route.params.scannedDevice;
-      if (status === "available") {
-        setDevices((prevDevices) => {
-          if (prevDevices.some((device) => device === id)) {
-            Alert.alert("Duplicate Device", "This device has already been scanned.");
-            return prevDevices;
-          }
-          return [...prevDevices, id];
-        });
-      } else {
-        Alert.alert("Error", `Device ${id} is not available.`);
+      const { id, status, type } = route.params.scannedDevice;
+      console.log(type)
+      if (type === "Device") {
+        if (status === "available") {
+          setDevices((prevDevices) => {
+            if (prevDevices.includes(id)) {
+              Alert.alert("Duplicate Device", "This device has already been scanned.");
+              return prevDevices;
+            }
+            return [...prevDevices, id];
+          });
+        } else {
+          Alert.alert("Error", `Device ${id} is not available.`);
+        }
+      } else if (type === "Accesory") {
+        console.log("hi")
+        setCurrentAccessoryId(id);
+        setQuantity("");
+        setModalVisible(true);
       }
     }
   }, [route.params?.scannedDevice]);
+  
+  const handleAddAccessory = () => {
+    const parsedQuantity = parseInt(quantity, 10);
+    if (!quantity || isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      Alert.alert("Invalid Quantity", "Please enter a valid number.");
+      return;
+    }
 
+    setAccessories((prevAccessories) => [
+      ...prevAccessories,
+      { id: currentAccessoryId, quantity: parsedQuantity },
+    ]);
+
+    setModalVisible(false);
+  };
   const handleUpdateParcel = useCallback(async () => {
     if (!token) {
       Alert.alert("Error", "User not authenticated");
       return;
     }
-
-    if (devices.length === 0) {
-      Alert.alert("Error", "Please scan at least one available device.");
+  
+    if ((devices.length > 0 && accessories.length > 0) || (devices.length === 0 && accessories.length === 0)) {
+      Alert.alert("Error", "You can update either devices or accessories at a time, not both.");
       return;
     }
-
-    const parcelData = { agentid, devices,parcelNumber };
+  
+    const parcelData = { agentid, devices, parcelNumber, accessories };
     try {
       const response = await fetch(`${apiUrl}/parcel/Updateparcel`, {
         method: "POST",
@@ -102,14 +132,15 @@ const UpdateParcelScreen = ({ route }) => {
       const result = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Parcel updated successfully");
-        navigation.goBack();  
+        navigation.goBack();
       } else {
         Alert.alert("Error", result.message || "Failed to update parcel");
       }
     } catch (error) {
       Alert.alert("Error", "Something went wrong");
     }
-  }, [token, agentid, devices]);
+  }, [token, agentid, devices, accessories]);
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -131,9 +162,21 @@ const UpdateParcelScreen = ({ route }) => {
       )}
     />
   )}
+  <Text style={styles.sectionTitle}>Existing Parcel Accessories</Text>
+  {ExistingAccessories.length === 0 ? (
+    <Text style={styles.noDevicesText}>No existing Accessories in this parcel.</Text>
+  ) : (
+    <FlatList
+    data={ExistingAccessories}
+    keyExtractor={(item, index) => index.toString()}
+    renderItem={({ item }) => (
+      <Text>Accessory: {item.id}, Quantity: {item.quantity}</Text>
+    )}
+  />  
+  )}
 
+  <Button title="Scan Device/Scan Accessory" onPress={() => navigation.navigate("updateqrscan")} />
   <Text style={styles.sectionTitle}>Scanned Devices</Text>
-  <Button title="Scan Device" onPress={() => navigation.navigate("updateqrscan")} />
   
   {devices.length === 0 ? (
     <Text style={styles.noDevicesText}>No new devices scanned.</Text>
@@ -154,8 +197,34 @@ const UpdateParcelScreen = ({ route }) => {
       )}
     />
   )}
+  <Text style={styles.sectionTitle}>Scanned Accessories</Text>
+  {accessories.length === 0 ? (
+    <Text style={styles.noDevicesText}>No new accessories scanned.</Text>
+  ) : (
+    <FlatList
+        data={accessories}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => <Text>Accessory: {item.id}, Quantity: {item.quantity}</Text>}
+      />
+  )}
 
   <Button title="Update Parcel" onPress={handleUpdateParcel} />
+  <Modal visible={modalVisible} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Enter quantity for Accessory ID: {currentAccessoryId}</Text>
+            <TextInput
+              value={quantity}
+              onChangeText={setQuantity}
+              keyboardType="numeric"
+              placeholder="Enter Quantity"
+              style={styles.input}
+            />
+            <Button title="OK" onPress={handleAddAccessory} />
+            <Button title="Cancel" onPress={() => setModalVisible(false)} color="red" />
+          </View>
+        </View>
+      </Modal>
 </SafeAreaView>
 
   );
@@ -212,6 +281,8 @@ const styles = StyleSheet.create({
     color: "#888",
     marginBottom: 10,
   },
+  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10 },
 });
 
 export default UpdateParcelScreen;
