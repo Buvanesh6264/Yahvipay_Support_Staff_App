@@ -113,9 +113,9 @@ const AddDeviceScreen = ({ navigation, route }) => {
             style={styles.picker}
           >
             <Picker.Item label="Available" value="available" />
-            <Picker.Item label="Assigned" value="assigned" />
+            {/* <Picker.Item label="Assigned" value="assigned" />
             <Picker.Item label="Delivered" value="delivered" />
-            <Picker.Item label="Damaged" value="damaged" />
+            <Picker.Item label="Damaged" value="damaged" /> */}
           </Picker>
         </View>
 

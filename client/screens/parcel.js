@@ -34,6 +34,22 @@ export default function ParcelScreen() {
     navigation.navigate('parceldetial', { parcelNumber });
   };
 
+  const getStatusStyle = (status) => {
+    switch (status?.toLowerCase()) {
+      case "packed":
+        return { color: "#6f42c1" };       
+      case "sent":
+        return { color: "#17a2b8" };       
+      case "received":
+        return { color: "#ffc107" };       
+      case "delivered":
+        return { color: "#28a745" };       
+      default:
+        return { color: "#6c757d" };       
+    }
+  };
+  
+  
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
@@ -54,6 +70,12 @@ export default function ParcelScreen() {
             <Card style={styles.card}>
               {/* <Card.Cover source={{ uri: item.image }} style={styles.image} /> */}
               <Card.Title title={`Parcel ${item.parcelNumber}`} titleStyle={styles.cardTitle} />
+              <Card.Content>
+                <Text style={[styles.statusText, getStatusStyle(item.status)]}>
+                  Status: {item.status?.toUpperCase()}
+                </Text>
+              </Card.Content>
+
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.trackButton}
@@ -115,6 +137,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     elevation: 3,
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: '600',     
+    textAlign: 'center',   
+    marginTop: 8,
   },
   buttonText: {
     color: 'white',

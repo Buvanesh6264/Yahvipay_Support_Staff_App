@@ -32,7 +32,13 @@ export default function ParcelScanner({ navigation }) {
     setScanned(true);
   console.log(data)
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/${data}`);
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/deviceid`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ deviceid:data }),
+      });
       const result = await response.json();
       console.log(result)
   

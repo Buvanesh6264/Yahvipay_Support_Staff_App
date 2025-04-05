@@ -1,23 +1,34 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TextInput, Button, Alert, FlatList, TouchableOpacity, StyleSheet ,SafeAreaView,StatusBar } from "react-native";
-// import { Appbar } from 'react-native-paper';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import { Picker } from "@react-native-picker/picker";
+import { MaterialIcons, FontAwesome5, Entypo, Ionicons } from "@expo/vector-icons";
+
 
 const CreateParcelScreen = ({ route }) => {
   const [pickupLocation, setPickupLocation] = useState("");
   const [destination, setDestination] = useState("");
   const [agentid, setAgentid] = useState("");
+  const [agentList, setAgentList] = useState([]);
   const [devices, setDevices] = useState([]);
-  // const [scandevices, setScanDevices] = useState([]);
   const [reciver, setReciver] = useState("");
   const [sender, setSender] = useState("");
   const [token, setToken] = useState(null);
   const navigation = useNavigation();
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-  useEffect(()=>{
-    console.log(devices,'useeffect')
-  },[devices]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -37,6 +48,26 @@ const CreateParcelScreen = ({ route }) => {
   }, []);
 
   useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await fetch("http://192.168.1.40:4000/allAgentId");
+        const data = await response.json();
+        if (response.ok) {
+          const ids = data.map((agent) => agent.id);
+          setAgentList(ids);
+        } else {
+          Alert.alert("Error", "Failed to fetch agent list");
+        }
+      } catch (error) {
+        console.error("Agent fetch error:", error);
+        Alert.alert("Error", "Could not fetch agents");
+      }
+    };
+
+    fetchAgents();
+  }, []);
+
+  useEffect(() => {
     if (route.params?.scannedDevice) {
       const { id, status } = route.params.scannedDevice;
       if (status === "available") {
@@ -52,22 +83,7 @@ const CreateParcelScreen = ({ route }) => {
       }
     }
   }, [route.params?.scannedDevice]);
-  
-  
-  // const handleAdddevice = async () => {
-  //   console.log(scandevices,"device id")
-  //   if (!scandevices) {
-  //     Alert.alert("Error", "Please scan the device to add the device");
-  //     return;
-  //   }
-  //   else{
-    
-  //     setAccessories((prev) => [...prev, { deviceid: scandevices}]);
-  //     setScanDevices("");  
-  //   }
-  // };
 
-  
   const handleAddParcel = useCallback(async () => {
     if (!token) {
       Alert.alert("Error", "User not authenticated");
@@ -88,7 +104,6 @@ const CreateParcelScreen = ({ route }) => {
       sender,
     };
 
-    console.log("Sending data:", JSON.stringify(parcelData)); 
     try {
       const response = await fetch(`${apiUrl}/parcel/addparcel`, {
         method: "POST",
@@ -98,7 +113,6 @@ const CreateParcelScreen = ({ route }) => {
         },
         body: JSON.stringify(parcelData),
       });
-      console.log(token)
 
       const result = await response.json();
       if (response.ok) {
@@ -114,30 +128,88 @@ const CreateParcelScreen = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Create Parcel</Text>
-      <Button title="Scan Device" onPress={() => navigation.navigate("parcelqrscan")} />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        
+        <Text style={styles.title}> Create New Parcel</Text>
 
-      <FlatList
-        data={devices}
-        keyExtractor={(item) => item.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.deviceItemContainer}>
-            <Text style={styles.deviceItem}>Device ID: {item}</Text>
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => setDevices((prev) => prev.filter((device) => device !== item))}
-            >
-              <Text style={styles.removeButtonText}>Remove</Text>
-            </TouchableOpacity>
-          </View>
+        <Text style={styles.sectionTitle}>Devices</Text>
+        <Button
+          title="Scan Device"
+          color="#4CAF50"
+          onPress={() => navigation.navigate("parcelqrscan")}
+        />
+
+        {devices.length > 0 && (
+          <FlatList
+            data={devices}
+            keyExtractor={(item) => item.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.deviceItemContainer}>
+                <Text style={styles.deviceItem}>Device ID: {item}</Text>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() =>
+                    setDevices((prev) => prev.filter((device) => device !== item))
+                  }
+                >
+                  <Text style={styles.removeButtonText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
         )}
-      />
-      <TextInput style={styles.input} placeholder="Pickup Location" value={pickupLocation} onChangeText={setPickupLocation} />
-      <TextInput style={styles.input} placeholder="Destination" value={destination} onChangeText={setDestination} />
-      <TextInput style={styles.input} placeholder="Agent ID" value={agentid} onChangeText={setAgentid} />
-      <TextInput style={styles.input} placeholder="Receiver" value={reciver} onChangeText={setReciver} />
-      <TextInput style={styles.input} placeholder="Sender" value={sender} onChangeText={setSender} />
-      <Button title="Add Parcel" onPress={handleAddParcel} />
+
+        <Text style={styles.sectionTitle}>Parcel Details</Text>
+        <Text style={styles.label}>Pickup Location</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter pickup location"
+          value={pickupLocation}
+          onChangeText={setPickupLocation}
+        />
+
+        <Text style={styles.label}>Destination</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter destination"
+          value={destination}
+          onChangeText={setDestination}
+        />
+
+        <Text style={styles.label}>Select Agent</Text>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={agentid}
+            onValueChange={(itemValue) => setAgentid(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="-- Select Agent ID --" value="" />
+            {agentList.map((id) => (
+              <Picker.Item key={id} label={id} value={id} />
+            ))}
+          </Picker>
+        </View>
+
+        <Text style={styles.label}>Receiver Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter receiver's name"
+          value={reciver}
+          onChangeText={setReciver}
+        />
+
+        <Text style={styles.label}>Sender Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter sender's name"
+          value={sender}
+          onChangeText={setSender}
+        />
+
+        <View style={{ marginTop: 20 }}>
+          <Button title=" Submit Parcel" color="#1E88E5" onPress={handleAddParcel} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -146,30 +218,58 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    // marginTop:19,
-    backgroundColor: "#fff",
     paddingTop: StatusBar.currentHeight,
+    backgroundColor: "#f7f9fc",
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
-    marginBottom: 20,
     textAlign: "center",
+    marginBottom: 20,
+    color: "#1E88E5",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginVertical: 10,
+    color: "#333",
+  },
+  label: {
+    fontSize: 14,
+    marginBottom: 5,
+    color: "#555",
+    marginTop: 10,
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 10,
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 10,
-    borderRadius: 5,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
+  picker: {
+    height: 50,
   },
   deviceItemContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    marginVertical: 4,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
   deviceItem: {
     fontSize: 16,
@@ -177,7 +277,8 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     backgroundColor: "red",
-    padding: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: 5,
   },
   removeButtonText: {

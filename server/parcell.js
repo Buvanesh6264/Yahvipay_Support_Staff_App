@@ -123,6 +123,7 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
                             status: "assigned",
                             supportid,
                             agentid,
+                            parcelNumber,
                             Inventory: false,
                         },
                     }
@@ -298,7 +299,8 @@ router.get("/userparcels", authenticatetoken, async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection(parcelCollection);
 
-    const parcels = await collection.find({ supportid }).toArray();
+    const parcels = await collection.find({supportid,status: { $ne: "delivered" }}).toArray();
+    
     res.status(200).json({
       status: "success",
       message: "Parcels retrieved successfully",
@@ -325,7 +327,7 @@ router.get("/allparcels", async (req, res) => {
       const collection = db.collection(parcelCollection);
   
   
-      const parcels = await collection.find().toArray();
+      const parcels = await collection.find({ status: { $ne: "delivered" } }).toArray();``
   
       res.status(200).json({
         status: "success",
@@ -379,10 +381,10 @@ router.get("/allparcels", async (req, res) => {
 //     }
 //   });
 
-router.get("/agentid", async (req, res) => {
+router.post("/agentid", async (req, res) => {
   try {
     const { agentid } = req.body;
-
+    console.log(agentid)
     if (!agentid) {
       return res.status(400).json({
         status: "error",
@@ -465,5 +467,54 @@ router.post("/parcelNumber", async (req, res) => {
         if (client) await client.close();
     }
 });
+
+router.post("/updatestatus", async (req, res) => {
+  try {
+    const { parcelNumber, status } = req.body;
+    console.log(req.body);
+    
+    if (!parcelNumber || !status) {
+      return res.status(400).json({
+        status: "error",
+        message: "Both 'parcelNumber' and 'status' are required"
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(parcelCollection);
+
+    const result = await collection.updateOne(
+      { parcelNumber: parcelNumber },
+      {
+        $set: {
+          status: status,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Parcel not found"
+      });
+    }
+
+    res.json({
+      status: "success",
+      message: "Parcel status updated successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server error",
+      error: error.message
+    });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
 
 module.exports = router;

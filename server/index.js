@@ -43,7 +43,7 @@ app.get("/dashboardcounts", async (req, res) => {
     const [trackingCount, availableDevicesCount, parcelCount] = await Promise.all([
       trackingCollectionRef.countDocuments({ status: { $ne: "Out for Delivery" } }),
       deviceCollectionRef.countDocuments({ status: "available" }),
-      parcelCollectionRef.countDocuments({})
+      parcelCollectionRef.countDocuments({ status: { $nin: ["delivered", "packed"] } }),
     ]);
 
     res.status(200).json({

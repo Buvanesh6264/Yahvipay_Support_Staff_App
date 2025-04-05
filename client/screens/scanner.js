@@ -34,7 +34,14 @@ export default function Scanner({ navigation }) {
     setProductId(data);
   
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/${data}`);
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/deviceid`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ deviceid:data }),
+      });
+      console.log(data)
       const result = await response.json();
   
       if (response.ok && result.device) {

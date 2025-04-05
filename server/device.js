@@ -71,7 +71,7 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
   try {
     const { devicename, status, agentid, image, deviceid } = req.body;
     const supportid = req.user.supportid;
-
+    console.log(req.body)
     if (!devicename || !status || !deviceid) {
       return res.status(400).json({
         status: "error",
@@ -103,6 +103,7 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       Inventory,
       type,
       image: image || "",
+      parcelNumber:"",
     });
 
     res.status(201).json({
@@ -262,14 +263,15 @@ router.get('/get',(req,res)=>{
 
 router.post("/deviceid", async (req, res) => {
   try {
+    console.log("hi")
       const { deviceid } = req.body;
-      // console.log(req.params)
+      console.log("second",req.body)
       await client.connect();
       const db = client.db(dbName);
       const collection = db.collection(deviceCollection);
       
       const device = await collection.findOne({ deviceid });
-      // console.log(device)
+      console.log(device)
       if (!device) {
       return res.status(404).json({
           status: "error",
@@ -289,6 +291,53 @@ router.post("/deviceid", async (req, res) => {
       res.status(400).json({ error: "Internal server error" });
   } finally {
       await client.close();
+  }
+});
+
+router.post("/agentid", async (req, res) => {
+  try {
+    const { agentid } = req.body;
+    console.log(agentid)
+    if (!agentid) {
+      return res.status(400).json({
+        status: "error",
+        message: "Missing agentid",
+        description: "Agent ID is required as a query parameter",
+        status_code: 400,
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(deviceCollection);
+
+    const parcels = await collection.find({ agentid }).toArray();
+
+    if (parcels.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "No parcels found",
+        description: "No Device found for the given agent ID",
+        status_code: 404,
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Devices retrieved successfully",
+      data: parcels,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Devices Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  } finally {
+    await client.close();
   }
 });
 

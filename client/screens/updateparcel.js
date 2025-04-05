@@ -46,7 +46,13 @@ const UpdateParcelScreen = ({ route }) => {
     const fetchParcelData = async () => {
       try {
         if (!parcelNumber) return;
-        const response = await fetch(`${apiUrl}/parcel/${parcelNumber}`);
+        const response = await fetch(`${apiUrl}/parcel/parcelNumber`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ parcelNumber }),
+        });
         const result = await response.json();
         if (response.ok) {
           setAgentid(result.data.agentid);
