@@ -44,6 +44,32 @@ export default function UserParcelScreen() {
   const handleViewPackage = (parcelNumber) => {
     navigation.navigate('parceldetial', { parcelNumber });
   };
+
+  const handleSendParcel = async (parcelNumber) => {
+    try {
+      const response = await fetch(`${apiUrl}/parcel/updatestatus`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parcelNumber: parcelNumber,
+          status: "sent"
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok && result.status === "success") {
+        fetchParcels(); 
+      } else {
+        console.error("Failed to update status:", result.message);
+      }
+    } catch (error) {
+      console.error("Error updating parcel status:", error);
+    }
+  };
+
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
       case "packed":
@@ -76,15 +102,23 @@ export default function UserParcelScreen() {
           keyExtractor={(item) => item.parcelNumber.toString()}
           renderItem={({ item }) => (
             <Card style={styles.card}>
-              {/* <Card.Cover source={{ uri: item.image }} style={styles.image} /> */}
-              <Card.Title title={`Parcel ${item.parcelNumber}`} titleStyle={styles.cardTitle} />
+              <Card.Cover source={{ uri: 'https://imgs.search.brave.com/mN2Zk0Wyu2uZ81v8jKIq5Dp9bzIEJKKjJcwIsNZxWgc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA2LzM0Lzc3LzEz/LzM2MF9GXzYzNDc3/MTM2NF9aUmFwZ1ZH/Z0plZFBtSk04eEhV/ckNYS3ZRRUhFU2o1/YS5qcGc' }} style={styles.image} />
+              <Card.Title title={`Parcel No: ${item.parcelNumber}`} titleStyle={styles.cardTitle} />
               <Card.Content>
                 <Text style={[styles.statusText, getStatusStyle(item.status)]}>
                   Status: {item.status?.toUpperCase()}
                 </Text>
               </Card.Content>
-
+              
               <View style={styles.buttonContainer}>
+                {item.status?.toLowerCase() === 'packed' && (
+                  <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={() => handleSendParcel(item.parcelNumber)}>
+                    <Ionicons name="send-outline" size={20} color="white" />
+                    <Text style={styles.buttonText}></Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity style={styles.trackButton} onPress={() => handleTrackPackage(item.parcelNumber)}>
                   <Text style={styles.buttonText}>Track Package</Text>
                 </TouchableOpacity>
@@ -120,7 +154,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
   },
-  // image: { height: 180, resizeMode: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+  image: { height: 180, resizeMode: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center', marginTop: 10 },
   buttonContainer: {
     flexDirection: 'row',
@@ -132,6 +166,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#28a745',
     paddingVertical: 10,
     paddingHorizontal: 20,
+    borderRadius: 8,
+    elevation: 3,
+  },
+  sendButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6f42c1',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 8,
     elevation: 3,
   },

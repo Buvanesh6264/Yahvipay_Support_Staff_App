@@ -8,6 +8,8 @@ export default function UpdateScanner({ navigation }) {
   const [scanned, setScanned] = useState(false);
   const [productId, setProductId] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(true); 
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -33,7 +35,15 @@ export default function UpdateScanner({ navigation }) {
   console.log(data)
   if(data.startsWith("AC")){
   try {
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/accessory/${data}`);
+    // console.log("in");
+    const response = await fetch(`${apiUrl}/accessory/accessoriesid`,{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ accessoriesid:data }),
+    });
+    // console.log("response")
     const result = await response.json();
     console.log(result)
     if (response.ok && result.data) {
@@ -47,13 +57,19 @@ export default function UpdateScanner({ navigation }) {
             Alert.alert("New Accesory", `Device ID: ${data} not found.Add the Accesory`);
           }
   } catch (error) {
-    console.error("Error checking device:", error);
-    Alert.alert("Error", "Could not check device. Try again.");
+    console.error("Error checking accessory:", error);
+    Alert.alert("Error", "Could not check accessory. Try again.");
   }
 }
 else{
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/device/${data}`);
+      const response = await fetch(`${apiUrl}/device/deviceid`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ deviceid:data }),
+      });
       const result = await response.json();
       console.log(result)
   

@@ -38,10 +38,10 @@ router.get("/allaccessory", async (req, res) => {
     }
 });
 
-router.get("/accessoriesid", async (req, res) => {
+router.post("/accessoriesid", async (req, res) => {
     try {
         const { accessoriesid } = req.body;
-
+        console.log(accessoriesid)
         await client.connect();
         const db = client.db(dbName);
         const collection = db.collection(accessoriesCollection);

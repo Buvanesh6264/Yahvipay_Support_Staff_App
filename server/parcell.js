@@ -111,6 +111,7 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
             accessories,
             reciver,
             sender,
+            status:"packed",
             createdAt: new Date(),
         });
 
@@ -483,7 +484,41 @@ router.post("/updatestatus", async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
     const collection = db.collection(parcelCollection);
+    const Device = db.collection(devicesCollection);
+    if(status === "delivered"){
+      const parcel = await collection.findOne({ parcelNumber });
+      if (!parcel) {
+          return res.status(400).json({
+              status: "error",
+              message: `Parcel ${parcelNumber} not found`,
+              status_code: 400,
+          });
+      }
+      const devices = parcel.devices || [];
 
+      for (let deviceid of devices) {
+          const device = await Device.findOne({ deviceid });
+          if (!device) {
+              return res.status(400).json({
+                  status: "error",
+                  message: `Device ${deviceid} not found`,
+                  status_code: 400,
+              });
+          }
+      }
+      await Promise.all(
+        devices.map(deviceid =>
+            Device.updateOne(
+                { deviceid },
+                {
+                    $set: {
+                        status: "delivered",
+                    },
+                }
+            )
+        )
+      );
+    }
     const result = await collection.updateOne(
       { parcelNumber: parcelNumber },
       {
@@ -500,7 +535,6 @@ router.post("/updatestatus", async (req, res) => {
         message: "Parcel not found"
       });
     }
-
     res.json({
       status: "success",
       message: "Parcel status updated successfully"
