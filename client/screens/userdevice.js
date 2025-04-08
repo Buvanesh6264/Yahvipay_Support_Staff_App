@@ -56,10 +56,10 @@ export default function DeviceScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate('Home')} />
+        <Appbar.BackAction onPress={() => navigation.navigate('Main')} />
         <Appbar.Content title="Your Devices" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add-outline" size={24} color="black" onPress={() => navigation.navigate('qrscan')}/>
+          <Ionicons name="add-outline" size={24} color="black" onPress={() => navigation.navigate('QRScan')}/>
         </TouchableOpacity>
       </Appbar.Header>
 
@@ -98,7 +98,7 @@ export default function DeviceScreen() {
           data={filteredDevices}
           keyExtractor={(item) => item.deviceid}
           renderItem={({ item }) => (
-            <Card style={styles.card} onPress={() => navigation.navigate("devicedetail", { deviceid: item.deviceid })}>
+            <Card style={styles.card} onPress={() => navigation.navigate("DeviceDetail", { deviceid: item.deviceid })}>
               <View style={styles.cardContent}>
                 <Card.Cover source={{ uri: item.image }} style={styles.image} />
                 <View style={styles.deviceInfo}>

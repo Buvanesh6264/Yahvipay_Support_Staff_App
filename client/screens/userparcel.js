@@ -42,7 +42,7 @@ export default function UserParcelScreen() {
   };
 
   const handleViewPackage = (parcelNumber) => {
-    navigation.navigate('parceldetial', { parcelNumber });
+    navigation.navigate('ParcelDetail', { parcelNumber });
   };
 
   const handleSendParcel = async (parcelNumber) => {
@@ -87,10 +87,10 @@ export default function UserParcelScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate('Home')}color="white" />
+        <Appbar.BackAction onPress={() => navigation.navigate('Main')}color="white" />
         <Appbar.Content title="Your Parcels" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('createparcel')}/>
+          <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('CreateParcel')}/>
         </TouchableOpacity>
       </Appbar.Header>
 
@@ -106,7 +106,7 @@ export default function UserParcelScreen() {
               <Card.Title title={`Parcel No: ${item.parcelNumber}`} titleStyle={styles.cardTitle} />
               <Card.Content>
                 <Text style={[styles.statusText, getStatusStyle(item.status)]}>
-                  Status: {item.status?.toUpperCase()}
+                  <Text style={styles.boldLabel}>Status:</Text> {item.status?.toUpperCase()}
                 </Text>
               </Card.Content>
               
@@ -180,9 +180,14 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 16,
-    fontWeight: '600',     
+    fontWeight: 'bold',     
     textAlign: 'center',   
     marginTop: 8,
+  },
+  boldLabel: {
+    fontWeight: 'bold',
+    color: '#444',
+    textAlign: 'center',   
   },
   viewButton: {
     backgroundColor: '#007bff',

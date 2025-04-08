@@ -45,7 +45,7 @@ export default function ParcelScanner({ navigation }) {
       if (response.ok && result.device) {
         console.log(result.device.status)
         if (result.device.status === "available") {
-            navigation.navigate("createparcel", { scannedDevice: { id: data, status: result.device.status } });
+            navigation.navigate("CreateParcel", { scannedDevice: { id: data, status: result.device.status } });
         } else {
           Alert.alert("Error", `Device ${data} is not available.`);
         }

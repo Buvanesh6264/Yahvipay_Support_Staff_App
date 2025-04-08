@@ -20,6 +20,7 @@ import ParcelScanner from "./parceldevicescanner";
 import AccesoriesScreen from "./accesories";
 import UpdateParcelScreen from "./updateparcel";
 import UpdateScanner from "./updatescanner";
+import AgentParcelDetail from "./agentparceltracking";
 
 
 const Stack = createStackNavigator();
@@ -50,6 +51,7 @@ function ParcelsStack() {
       <Stack.Screen name="accesories" component={AccesoriesScreen} />
       <Stack.Screen name="UpdateParcel" component={UpdateParcelScreen} />
       <Stack.Screen name="updateqrscan" component={UpdateScanner} />
+      <Stack.Screen name="agentparcel" component={AgentParcelDetail} />
     </Stack.Navigator>
   );
 }
@@ -87,5 +89,3 @@ export default function AppNavigator() {
     </Stack.Navigator>
   );
 }
-
-

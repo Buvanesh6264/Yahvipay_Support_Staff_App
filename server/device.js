@@ -14,7 +14,7 @@ const client = new MongoClient(uri);
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  console.log("Received Auth Header:", authHeader); 
+  // console.log("Received Auth Header:", authHeader); 
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized: No token provided" });
@@ -71,7 +71,7 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
   try {
     const { devicename, status, agentid, image, deviceid } = req.body;
     const supportid = req.user.supportid;
-    console.log(req.body)
+    // console.log(req.body)
     if (!devicename || !status || !deviceid) {
       return res.status(400).json({
         status: "error",
@@ -263,15 +263,15 @@ router.get('/get',(req,res)=>{
 
 router.post("/deviceid", async (req, res) => {
   try {
-    console.log("hi")
+    // console.log("hi")
       const { deviceid } = req.body;
-      console.log("second",req.body)
+      // console.log("second",req.body)
       await client.connect();
       const db = client.db(dbName);
       const collection = db.collection(deviceCollection);
       
       const device = await collection.findOne({ deviceid });
-      console.log(device)
+      // console.log(device)
       if (!device) {
       return res.status(404).json({
           status: "error",
@@ -297,7 +297,7 @@ router.post("/deviceid", async (req, res) => {
 router.post("/agentid", async (req, res) => {
   try {
     const { agentid } = req.body;
-    console.log(agentid)
+    // console.log(agentid)
     if (!agentid) {
       return res.status(400).json({
         status: "error",

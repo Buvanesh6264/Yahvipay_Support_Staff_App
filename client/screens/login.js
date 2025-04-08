@@ -33,7 +33,7 @@ export default function LoginScreen() {
   
         const result = await response.json();
         if (result.status === "success") {
-          navigation.replace("MainApp");
+          navigation.replace("Main");
         } else {
           await AsyncStorage.removeItem("token");
         }
@@ -62,7 +62,7 @@ export default function LoginScreen() {
       if (result.status === "success") {
         console.log("Login Successful:", result);
         await AsyncStorage.setItem("token", result.token);
-        navigation.replace("MainApp"); 
+        navigation.replace("Main"); 
         // console.error(result.message);
         setErrorMessage(result.message); 
       }

@@ -49,8 +49,8 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
         const { pickupLocation, destination, agentid, devices, reciver, sender } = req.body;
         const supportid = req.user.supportid;
         const accessories = [];
-        console.log(req.body,'data')
-        console.log(req.user.id,'userid')
+        // console.log(req.body,'data')
+        // console.log(req.user.id,'userid')
         if (!pickupLocation) {
           return res.status(400).json({
             status: "error",
@@ -156,7 +156,7 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
   try {
       const { agentid, devices, accessories, parcelNumber } = req.body;
       const supportid = req.user.supportid;
-      console.log(req.body);
+      // console.log(req.body);
 
       if ((!devices || devices.length === 0) && (!accessories || accessories.length === 0)) {
           return res.status(400).json({
@@ -272,7 +272,7 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
     }
 
       const updatedParcel = await Parcel.findOne({ parcelNumber });
-      console.log("Updated Parcel:", updatedParcel);
+      // console.log("Updated Parcel:", updatedParcel);
 
       res.status(201).json({
           status: "success",
@@ -385,7 +385,7 @@ router.get("/allparcels", async (req, res) => {
 router.post("/agentid", async (req, res) => {
   try {
     const { agentid } = req.body;
-    console.log(agentid)
+    // console.log(agentid)
     if (!agentid) {
       return res.status(400).json({
         status: "error",
@@ -399,7 +399,7 @@ router.post("/agentid", async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection(parcelCollection);
 
-    const parcels = await collection.find({ agentid }).toArray();
+    const parcels = await collection.find({ agentid, status: { $nin: ["delivered", "packed"] } }).toArray();
 
     if (parcels.length === 0) {
       return res.status(404).json({
@@ -422,6 +422,58 @@ router.post("/agentid", async (req, res) => {
       status: "error",
       message: "Internal server error",
       description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+//agent filter parcel
+router.post("/agentidstatus", async (req, res) => {
+  try {
+    const { agentid, status } = req.body;
+
+    if (!agentid) {
+      return res.status(400).json({
+        status: "error",
+        message: "Missing agentid",
+        description: "Agent ID is required",
+        status_code: 400,
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(parcelCollection);
+
+    const query = { agentid };
+    if (status && status !== "All") {
+      query.status = status;
+    }
+
+    const parcels = await collection.find(query).toArray();
+
+    if (parcels.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "No parcels found",
+        description: "No parcels found for the given criteria",
+        status_code: 404,
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Parcels retrieved successfully",
+      data: parcels,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Parcel Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
       status_code: 500,
     });
   } finally {
@@ -472,7 +524,7 @@ router.post("/parcelNumber", async (req, res) => {
 router.post("/updatestatus", async (req, res) => {
   try {
     const { parcelNumber, status } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
     
     if (!parcelNumber || !status) {
       return res.status(400).json({

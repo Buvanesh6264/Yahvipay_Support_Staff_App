@@ -46,11 +46,11 @@ export default function Scanner({ navigation }) {
   
       if (response.ok && result.device) {
         Alert.alert("Device Found", `Device ID: ${data} exists.`, [
-          { text: "OK", onPress: () => navigation.navigate("devicedetail", { deviceid: data }) }
+          { text: "OK", onPress: () => navigation.navigate("DeviceDetail", { deviceid: data }) }
         ]);
       } else {
         Alert.alert("New Device", `Device ID: ${data} not found.`, [
-          { text: "OK", onPress: () => navigation.navigate("adddevice", { scannedId: data }) }
+          { text: "OK", onPress: () => navigation.navigate("AddDevice", { scannedId: data }) }
         ]);
       }
     } catch (error) {
@@ -72,7 +72,7 @@ export default function Scanner({ navigation }) {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate("Home")} />
+        <Appbar.BackAction onPress={() => navigation.navigate("Main")} />
         <Appbar.Content title="Scanner" titleStyle={styles.navbarTitle}/>
       </Appbar.Header>
       {isCameraActive && (

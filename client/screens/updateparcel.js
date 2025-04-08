@@ -181,7 +181,7 @@ const UpdateParcelScreen = ({ route }) => {
   />  
   )}
 
-  <Button title="Scan Device/Scan Accessory" onPress={() => navigation.navigate("updateqrscan")} />
+  <Button title="Scan Device/Scan Accessory" onPress={() => navigation.navigate("UpdateQRScan")} />
   <Text style={styles.sectionTitle}>Scanned Devices</Text>
   
   {devices.length === 0 ? (

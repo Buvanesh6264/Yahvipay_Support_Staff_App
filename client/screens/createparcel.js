@@ -25,7 +25,7 @@ const CreateParcelScreen = ({ route }) => {
   const [agentList, setAgentList] = useState([]);
   const [devices, setDevices] = useState([]);
   const [reciver, setReciver] = useState("");
-  const [sender, setSender] = useState("");
+  const [sender, setSender] = useState("Yavhipay");
   const [token, setToken] = useState(null);
   const navigation = useNavigation();
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -52,9 +52,10 @@ const CreateParcelScreen = ({ route }) => {
       try {
         const response = await fetch("http://192.168.1.34:4000/allAgentId");
         const data = await response.json();
-        console.log("agents",data)
+        // console.log("agents",data)
         if (response.ok) {
-          const ids = data.map((agent) => agent.id);
+          const ids = data.map((agent) => agent);
+          // console.log("ids",ids)
           setAgentList(ids);
         } else {
           Alert.alert("Error", "Failed to fetch agent list");
@@ -137,7 +138,7 @@ const CreateParcelScreen = ({ route }) => {
         <Button
           title="Scan Device"
           color="#4CAF50"
-          onPress={() => navigation.navigate("parcelqrscan")}
+          onPress={() => navigation.navigate("ParcelQRScan")}
         />
 
         {devices.length > 0 && (
@@ -179,16 +180,22 @@ const CreateParcelScreen = ({ route }) => {
 
         <Text style={styles.label}>Select Agent</Text>
         <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={agentid}
-            onValueChange={(itemValue) => setAgentid(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Agent ID --" value="" />
-            {agentList.map((id) => (
-              <Picker.Item key={id} label={id} value={id} />
-            ))}
-          </Picker>
+        <Picker
+          selectedValue={agentid}
+          onValueChange={(itemValue) => {
+            setAgentid(itemValue);
+            const selectedAgent = agentList.find(agent => agent.id === itemValue);
+            if (selectedAgent) {
+              setReciver(selectedAgent.firstname); 
+            }
+          }}
+          style={styles.picker}
+        >
+          <Picker.Item label="-- Select Agent ID --" value="" />
+          {agentList.map((agent) => (
+            <Picker.Item key={agent.id} label={agent.id} value={agent.id} />
+          ))}
+        </Picker>
         </View>
 
         <Text style={styles.label}>Receiver Name</Text>
@@ -196,7 +203,8 @@ const CreateParcelScreen = ({ route }) => {
           style={styles.input}
           placeholder="Enter receiver's name"
           value={reciver}
-          onChangeText={setReciver}
+          // onChangeText={setReciver} 
+          editable={false} 
         />
 
         <Text style={styles.label}>Sender Name</Text>
@@ -204,7 +212,8 @@ const CreateParcelScreen = ({ route }) => {
           style={styles.input}
           placeholder="Enter sender's name"
           value={sender}
-          onChangeText={setSender}
+          // onChangeText={setSender}
+          editable={false}
         />
 
         <View style={{ marginTop: 20 }}>

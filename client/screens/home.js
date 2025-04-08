@@ -63,21 +63,21 @@ export default function HomeScreen() {
       <Section
         title="Device"
         items={["Add Device", "All Device", "Your Device"]}
-        screens={[{ name: "devices", screen: "qrscan" }, { name: "devices" ,screen: "devices"}, {  name: "devices" ,screen: "userdevices" }]}
+        screens={["QRScan", "Devices", "UserDevices"]}
         navigation={navigation}
       />
 
       <Section
         title="Parcel"
         items={["Create Parcel", "All Parcel", "Your Parcel"]}
-        screens={[{ name: "parcels", screen: "createparcel" }, { name: "parcels" ,screen: "parcels"}, {  name: "parcels" ,screen: "userspakage" }]}
-        navigation={navigation} 
+        screens={["CreateParcel", "Parcels", "UserParcel"]}
+        navigation={navigation}
       />
 
       <Section
         title="Accessories"
         items={["All Accessories"]}
-        screens={[{ name: "parcels", screen: "accesories" }]} 
+        screens={["Accesories"]}
         navigation={navigation}
       />
 
@@ -117,12 +117,8 @@ const Section = ({ title, items, screens, navigation }) => {
           key={index}
           style={styles.sectionItem}
           onPress={() => {
-            const screenData = screens[index];
-            if (typeof screenData === "string") {
-              navigation.navigate(screenData);
-            } else {
-              navigation.navigate(screenData.name, { screen: screenData.screen });
-            }
+            // navigate directly to screen name
+            navigation.navigate(screens[index]);
           }}
         >
           <View style={styles.row}>
@@ -134,6 +130,7 @@ const Section = ({ title, items, screens, navigation }) => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   safeContainer: {
