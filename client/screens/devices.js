@@ -31,14 +31,14 @@ export default function DeviceScreen() {
   };
 
   const filteredDevices = devices.filter((device) =>
-    device.devicename.toLowerCase().includes(search.toLowerCase())
+    device.deviceid.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
         {/* <Appbar.BackAction onPress={() => navigation.navigate('Main')} /> */}
-        <Appbar.Content title="Devices" titleStyle={styles.navbarTitle} />
+        <Appbar.Content title="Device Inventory" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
           <Ionicons name="add-outline" size={24} color="black" onPress={() => navigation.navigate('QRScan')}/>
         </TouchableOpacity>
@@ -48,7 +48,7 @@ export default function DeviceScreen() {
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by device name"
+          placeholder="Search by device Id"
           placeholderTextColor="#888"
           value={search}
           onChangeText={setSearch}

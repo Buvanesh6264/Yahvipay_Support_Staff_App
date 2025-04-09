@@ -16,7 +16,7 @@ router.get("/allaccessory", async (req, res) => {
         const db = client.db(dbName);
         const collection = db.collection(accessoriesCollection);
 
-        const accessories = await collection.find().toArray();
+        const accessories = await collection.find({status:{$nin:["damaged"]}}).toArray();
 
         res.status(200).json({
             status: "success",
@@ -46,7 +46,7 @@ router.post("/accessoriesid", async (req, res) => {
         const db = client.db(dbName);
         const collection = db.collection(accessoriesCollection);
 
-        const accessory = await collection.findOne({ accessoriesid });
+        const accessory = await collection.findOne({ accessoriesid ,status:{$nin:["damaged"]}});
 
         if (!accessory) {
             return res.status(404).json({

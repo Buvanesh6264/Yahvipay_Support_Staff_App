@@ -21,6 +21,7 @@
     import UpdateScanner from "./updatescanner";
     import AgentParcelDetail from "./agentparceltracking";
 import BottomTabs from "./botemtabnavigator";
+import ReturnParcel from "./returningparcel";
 
     const Stack = createStackNavigator();
 
@@ -47,6 +48,7 @@ import BottomTabs from "./botemtabnavigator";
         <Stack.Screen name="UpdateQRScan" component={UpdateScanner} />
         <Stack.Screen name="AgentParcelDetail" component={AgentParcelDetail} />
         <Stack.Screen name="Profile" component={ProfilePage} />
+        <Stack.Screen name="DamagedParcelFromAgent" component={ReturnParcel} />
         </Stack.Navigator>
     );
     }

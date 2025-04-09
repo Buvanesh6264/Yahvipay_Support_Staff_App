@@ -380,7 +380,7 @@ router.post("/updatedevicestatus", async (req, res) => {
     }
     await Device.updateOne(
       { deviceid },
-      { $set: [{ status: "delivered" },{user:true},{activated:true}] }
+      { $set: { status: "delivered", user: true, activated: true }}
     );
 
     res.json({

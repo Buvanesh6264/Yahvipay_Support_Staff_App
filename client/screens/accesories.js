@@ -51,6 +51,7 @@ export default function AccessoriesScreen() {
                   <Text style={styles.specs}>Port: {item.specs.port || "N/A"}</Text>
                   <Text style={styles.specs}>Brand: {item.specs.brand}</Text>
                   <Text style={styles.quantity}>Quantity: {item.quantity}</Text>
+                  <Text style={styles.quantity}>Status: {(item.status).toUpperCase()}</Text>
                   <View style={styles.stockContainer}>
                     <IconButton 
                       icon={item.instock ? 'check-circle' : 'close-circle'}

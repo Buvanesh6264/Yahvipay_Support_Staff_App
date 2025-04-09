@@ -62,21 +62,21 @@ export default function HomeScreen() {
       <View style={styles.sectionContainer}>
       <Section
         title="Device"
-        items={["Add Device", "All Device", "My Device"]}
+        items={["Add Device", "Device Inventory", "Devices Asigned to Me"]}
         screens={["QRScan", "Devices", "UserDevices"]}
         navigation={navigation}
       />
 
       <Section
         title="Parcel"
-        items={["Create Parcel", "All Parcel", "My Parcel","Track Marketing Agent Parcel"]}
-        screens={["CreateParcel", "Parcels", "UserParcel","AgentParcelDetail"]}
+        items={["Create Parcel", "Parcel Inventory", "Parcel Asigned to Me","Track Marketing Agent Parcel","Damaged Parcel From Agent"]}
+        screens={["CreateParcel", "Parcels", "UserParcel","AgentParcelDetail","DamagedParcelFromAgent"]}
         navigation={navigation}
       />
 
       <Section
         title="Accessories"
-        items={["All Accessories"]}
+        items={["Accessories Inventory"]}
         screens={["Accesories"]}
         navigation={navigation}
       />

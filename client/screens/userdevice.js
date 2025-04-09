@@ -50,7 +50,7 @@ export default function DeviceScreen() {
   };
 
   const filteredDevices = devices.filter((device) =>
-    device.devicename.toLowerCase().includes(search.toLowerCase())
+    device.deviceid.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -67,7 +67,7 @@ export default function DeviceScreen() {
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by device name"
+          placeholder="Search by device Id"
           placeholderTextColor="#888"
           value={search}
           onChangeText={setSearch}

@@ -4,39 +4,39 @@ import { Appbar, Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ParcelScreen() {
-  const [parcels, setParcels] = useState([]);
+export default function ReturnParcel() {
+//   const [parcels, setParcels] = useState([]);
   const [filteredParcels, setFilteredParcels] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-  useEffect(() => {
-    fetchParcels();
-  }, []);
+//   useEffect(() => {
+//     fetchParcels();
+//   }, []);
 
-  const fetchParcels = async () => {
-    try {
-      const response = await fetch(apiUrl + "/parcel/allparcels");
-      const data = await response.json();
-      if (Array.isArray(data?.data)) {
-        const sortedParcels = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setParcels(sortedParcels);
-        setFilteredParcels(sortedParcels);
-      } else {
-        console.warn("Unexpected data format: data.data is not an array");
-        setParcels([]);
-        setFilteredParcels([]);
-      }
-    } catch (error) {
-      console.error("Error fetching parcels:", error);
-      setParcels([]);
-      setFilteredParcels([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+//   const fetchParcels = async () => {
+//     try {
+//       const response = await fetch(apiUrl + "/parcel/allparcels");
+//       const data = await response.json();
+//       if (Array.isArray(data?.data)) {
+//         const sortedParcels = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+//         setParcels(sortedParcels);
+//         setFilteredParcels(sortedParcels);
+//       } else {
+//         console.warn("Unexpected data format: data.data is not an array");
+//         setParcels([]);
+//         setFilteredParcels([]);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching parcels:", error);
+//       setParcels([]);
+//       setFilteredParcels([]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
   const handleSearch = (text) => {
     setSearchQuery(text);
@@ -46,94 +46,92 @@ export default function ParcelScreen() {
     setFilteredParcels(filtered);
   };
 
-  const handleTrackPackage = (parcelNumber) => {
-    navigation.navigate('TrackPackage', { parcelNumber });
-  };
+//   const handleTrackPackage = (parcelNumber) => {
+//     navigation.navigate('TrackPackage', { parcelNumber });
+//   };
 
-  const handleViewPackage = (parcelNumber) => {
-    navigation.navigate('ParcelDetail', { parcelNumber });
-  };
+//   const handleViewPackage = (parcelNumber) => {
+//     navigation.navigate('ParcelDetail', { parcelNumber });
+//   };
 
-  const handleSendParcel = (parcelNumber) => {
-    Alert.alert(
-      "Send Parcel",
-      "Are you sure you want to send this parcel?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "OK",
-          onPress: async () => {
-            try {
-              const updateResponse = await fetch(`${apiUrl}/parcel/updatestatus`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  parcelNumber: parcelNumber,
-                  status: "sent"
-                }),
-              });
+//   const handleSendParcel = (parcelNumber) => {
+//     Alert.alert(
+//       "Send Parcel",
+//       "Are you sure you want to send this parcel?",
+//       [
+//         {
+//           text: "Cancel",
+//           style: "cancel"
+//         },
+//         {
+//           text: "OK",
+//           onPress: async () => {
+//             try {
+//               const updateResponse = await fetch(`${apiUrl}/parcel/updatestatus`, {
+//                 method: 'POST',
+//                 headers: {
+//                   'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({
+//                   parcelNumber: parcelNumber,
+//                   status: "sent"
+//                 }),
+//               });
 
-              const updateResult = await updateResponse.json();
+//               const updateResult = await updateResponse.json();
 
-              if (!updateResponse.ok || updateResult.status !== "success") {
-                console.error("Failed to update status:", updateResult.message);
-                return;
-              }
+//               if (!updateResponse.ok || updateResult.status !== "success") {
+//                 console.error("Failed to update status:", updateResult.message);
+//                 return;
+//               }
 
-              const trackingResponse = await fetch(`${apiUrl}/tracking/generate`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ parcelNumber }),
-              });
+//               const trackingResponse = await fetch(`${apiUrl}/tracking/generate`, {
+//                 method: 'POST',
+//                 headers: {
+//                   'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({ parcelNumber }),
+//               });
 
-              const trackingResult = await trackingResponse.json();
+//               const trackingResult = await trackingResponse.json();
 
-              if (!trackingResponse.ok || trackingResult.status !== "success") {
-                console.error("Failed to generate tracking:", trackingResult.message);
-                return;
-              }
+//               if (!trackingResponse.ok || trackingResult.status !== "success") {
+//                 console.error("Failed to generate tracking:", trackingResult.message);
+//                 return;
+//               }
 
-              Alert.alert("Success", "Parcel sent and tracking generated!");
-              fetchParcels();
+//               Alert.alert("Success", "Parcel sent and tracking generated!");
+//               fetchParcels();
 
-            } catch (error) {
-              console.error("Error during send and tracking generation:", error);
-            }
-          }
-        }
-      ]
-    );
-  };
+//             } catch (error) {
+//               console.error("Error during send and tracking generation:", error);
+//             }
+//           }
+//         }
+//       ]
+//     );
+//   };
 
-  const getStatusStyle = (status) => {
-    switch (status?.toLowerCase()) {
-      case "packed":
-        return { color: "#6f42c1" };
-      case "sent":
-        return { color: "#17a2b8" };
-      case "received":
-        return { color: "#ffc107" };
-      case "delivered":
-        return { color: "#28a745" };
-      default:
-        return { color: "#6c757d" };
-    }
-  };
+//   const getStatusStyle = (status) => {
+//     switch (status?.toLowerCase()) {
+//       case "packed":
+//         return { color: "#6f42c1" };
+//       case "sent":
+//         return { color: "#17a2b8" };
+//       case "received":
+//         return { color: "#ffc107" };
+//       case "delivered":
+//         return { color: "#28a745" };
+//       default:
+//         return { color: "#6c757d" };
+//     }
+//   };
 
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.Content title="Parcel Inventory" titleStyle={styles.navbarTitle} />
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('CreateParcel')} />
-        </TouchableOpacity>
+        <Appbar.BackAction onPress={() => navigation.navigate('Main')} color="black" />
+        <Appbar.Content title="Return Parcel Inventory" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
       {/* <TouchableOpacity
           style={styles.agentbtn}

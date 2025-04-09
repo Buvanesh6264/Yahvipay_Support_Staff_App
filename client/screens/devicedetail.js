@@ -89,7 +89,9 @@ const DeviceDetail = ({ route }) => {
             </Text>
           </View>
         </View>
-
+        <View style={styles.header}>
+        <Text style={styles.deviceId}>Device ID: {device.deviceid}</Text>
+        </View>
         <View
           style={[
             styles.statusContainer,

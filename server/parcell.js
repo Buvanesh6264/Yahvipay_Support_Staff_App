@@ -19,7 +19,6 @@ const generateParcelNumber = () => {
     return `PCL${timestamp}${randomSuffix}`; 
 };
 
-
 const authenticatetoken = (req, res, next) => {
   const token = req.headers["authorization"];
   if (!token){
@@ -215,7 +214,7 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
       }
 
       for (let { id, quantity } of accessories) {
-          const accessory = await Accessory.findOne({ accessoriesid: id });
+          const accessory = await Accessory.findOne({ accessoriesid: id,status:{$nin:["damaged"]}});
 
           if (!accessory || accessory.quantity < quantity) {
               return res.status(400).json({
@@ -255,7 +254,7 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
       if (accessories.length > 0) {
       await Promise.all(
           accessories.map(async ({ id, quantity }) => {
-              const accessory = await Accessory.findOne({ accessoriesid: id });
+              const accessory = await Accessory.findOne({ accessoriesid: id ,status:{$nin:["damaged"]}});
 
               if (!accessory) {
                   return res.status(400).json({
@@ -687,6 +686,22 @@ router.post("/returnOrDamageParcel", async (req, res) => {
           )
         )
       );
+      if (accessories.length > 0) {
+        await Promise.all(
+          accessories.map(async ({ id, quantity }) => {
+            const accessory = await Accessory.findOne({ accessoriesid: id ,status:{$nin:["notdamaged"]}});
+            if (!accessory) return;
+
+            const currentQty = parseInt(accessory.quantity) || 0;
+            const newQty = currentQty + parseInt(quantity);
+
+            await Accessory.updateOne(
+              { accessoriesid: id },
+              { $set: { quantity: newQty.toString() } }
+            );
+          })
+        );
+      }
     } else if (status === "return") {
       await Promise.all(
         devices.map((deviceid) =>
@@ -705,7 +720,7 @@ router.post("/returnOrDamageParcel", async (req, res) => {
       if (accessories.length > 0) {
         await Promise.all(
           accessories.map(async ({ id, quantity }) => {
-            const accessory = await Accessory.findOne({ accessoriesid: id });
+            const accessory = await Accessory.findOne({ accessoriesid: id ,status:{$nin:["damaged"]}});
             if (!accessory) return;
 
             const currentQty = parseInt(accessory.quantity) || 0;
