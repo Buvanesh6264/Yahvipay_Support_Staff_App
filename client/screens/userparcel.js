@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity ,Alert ,TextInput} from 'react-native';
 import { Appbar, Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,7 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function UserParcelScreen() {
   const navigation = useNavigation();
+  const [filteredParcels, setFilteredParcels] = useState([]);
   const [parcels, setParcels] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -20,22 +22,36 @@ export default function UserParcelScreen() {
             Authorization: token,
           },
         });
-
+  
         const data = await response.json();
-        if (response.ok) {
-          setParcels(data.data);
+        if (response.ok && Array.isArray(data?.data)) {
+          const sortedParcels = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // console.log("User parcel response:", sortedParcels); 
+          setParcels(sortedParcels);
+          setFilteredParcels(sortedParcels);
         } else {
-          console.error('Error fetching parcels:', data.message);
+          console.warn("Unexpected parcel format:", data);
+          setParcels([]);
+          setFilteredParcels([]);
         }
       } catch (error) {
         console.error('Fetch error:', error);
+        setParcels([]);
+        setFilteredParcels([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchParcels();
   }, []);
+  
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+    const filtered = parcels.filter((parcel) =>
+      parcel.parcelNumber.toString().includes(text)
+    );
+    setFilteredParcels(filtered);
+  };
 
   const handleTrackPackage = (parcelNumber) => {
     navigation.navigate('TrackPackage', { parcelNumber });
@@ -45,29 +61,63 @@ export default function UserParcelScreen() {
     navigation.navigate('ParcelDetail', { parcelNumber });
   };
 
-  const handleSendParcel = async (parcelNumber) => {
-    try {
-      const response = await fetch(`${apiUrl}/parcel/updatestatus`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+  const handleSendParcel = (parcelNumber) => {
+    Alert.alert(
+      "Send Parcel",
+      "Are you sure you want to send this parcel?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
         },
-        body: JSON.stringify({
-          parcelNumber: parcelNumber,
-          status: "sent"
-        }),
-      });
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              const updateResponse = await fetch(`${apiUrl}/parcel/updatestatus`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  parcelNumber: parcelNumber,
+                  status: "sent"
+                }),
+              });
   
-      const result = await response.json();
+              const updateResult = await updateResponse.json();
   
-      if (response.ok && result.status === "success") {
-        fetchParcels(); 
-      } else {
-        console.error("Failed to update status:", result.message);
-      }
-    } catch (error) {
-      console.error("Error updating parcel status:", error);
-    }
+              if (!updateResponse.ok || updateResult.status !== "success") {
+                console.error("Failed to update status:", updateResult.message);
+                return;
+              }
+  
+              const trackingResponse = await fetch(`${apiUrl}/tracking/generate`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ parcelNumber }),
+              });
+  
+              const trackingResult = await trackingResponse.json();
+  
+              if (!trackingResponse.ok || trackingResult.status !== "success") {
+                console.error("Failed to generate tracking:", trackingResult.message);
+                return;
+              }
+  
+              Alert.alert("Success", "Parcel sent and tracking generated!");
+  
+              fetchParcels();
+  
+            } catch (error) {
+              console.error("Error during send and tracking generation:", error);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const getStatusStyle = (status) => {
@@ -88,17 +138,33 @@ export default function UserParcelScreen() {
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
         <Appbar.BackAction onPress={() => navigation.navigate('Main')}color="white" />
-        <Appbar.Content title="Your Parcels" titleStyle={styles.navbarTitle} />
+        <Appbar.Content title="My Parcels" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
           <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('CreateParcel')}/>
         </TouchableOpacity>
       </Appbar.Header>
-
+      <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+          <TextInput
+            placeholder="Search by Parcel Number"
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={handleSearch}
+            style={styles.searchInput}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => handleSearch('')} style={styles.clearIcon}>
+              <Ionicons name="close-circle" size={20} color="#888" />
+            </TouchableOpacity>
+          )}
+      </View>
       {loading ? (
         <ActivityIndicator size="large" color="#007bff" style={styles.loader} />
-      ) : (
+      ) : filteredParcels.length === 0 ? (
+        <Text style={styles.noDataText}>parcel not found</Text>
+      ): (
         <FlatList
-          data={parcels}
+          data={filteredParcels}
           keyExtractor={(item) => item.parcelNumber.toString()}
           renderItem={({ item }) => (
             <Card style={styles.card}>
@@ -109,20 +175,22 @@ export default function UserParcelScreen() {
                   <Text style={styles.boldLabel}>Status:</Text> {item.status?.toUpperCase()}
                 </Text>
               </Card.Content>
-              
               <View style={styles.buttonContainer}>
                 {item.status?.toLowerCase() === 'packed' && (
                   <TouchableOpacity
                     style={styles.sendButton}
                     onPress={() => handleSendParcel(item.parcelNumber)}>
                     <Ionicons name="send-outline" size={20} color="white" />
-                    <Text style={styles.buttonText}></Text>
+                    <Text style={styles.buttonText}>  Send Parcel</Text>
                   </TouchableOpacity>
                 )}
-                <TouchableOpacity style={styles.trackButton} onPress={() => handleTrackPackage(item.parcelNumber)}>
-                  <Text style={styles.buttonText}>Track Package</Text>
-                </TouchableOpacity>
-
+                {item.status?.toLowerCase() !== 'packed' && (
+                  <TouchableOpacity
+                    style={styles.trackButton}
+                    onPress={() => handleTrackPackage(item.parcelNumber)}>
+                    <Text style={styles.buttonText}>Track Package</Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity style={styles.viewButton} onPress={() => handleViewPackage(item.parcelNumber)}>
                   <Text style={styles.buttonText}>View Package</Text>
                 </TouchableOpacity>
@@ -201,5 +269,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 10,
+    margin: 15,
+    alignItems: 'center',
+    elevation: 3,
+  },
+  searchIcon: { marginRight: 10 },
+  searchInput: { flex: 1, fontSize: 16, color: '#333' },
+  noDataText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 18,
+    color: '#666',
+  },
+  clearIcon: {
+    paddingLeft: 8,
   },
 });

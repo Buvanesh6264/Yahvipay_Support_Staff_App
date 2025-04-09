@@ -50,7 +50,7 @@ const CreateParcelScreen = ({ route }) => {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const response = await fetch("http://192.168.1.34:4000/allAgentId");
+        const response = await fetch("http://192.168.4.74:4000/allAgentId");
         const data = await response.json();
         // console.log("agents",data)
         if (response.ok) {

@@ -257,9 +257,9 @@ router.get("/alldevices", async (req, res) => {
 //   });
 
 
-router.get('/get',(req,res)=>{
-  res.send('send');
-})
+// router.get('/get',(req,res)=>{
+//   res.send('send');
+// })
 
 router.post("/deviceid", async (req, res) => {
   try {
@@ -338,6 +338,64 @@ router.post("/agentid", async (req, res) => {
     });
   } finally {
     await client.close();
+  }
+});
+
+router.post("/updatedevicestatus", async (req, res) => {
+  try {
+    const { deviceid, status } = req.body;
+
+    if (!deviceid || !status) {
+      return res.status(400).json({
+        status: "error",
+        message: "Both 'deviceid' and 'status' are required",
+      });
+    }
+
+    if (status !== "delivered") {
+      return res.status(400).json({
+        status: "error",
+        message: "Only 'delivered' status update is allowed",
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const Device = db.collection(deviceCollection);
+
+    const device = await Device.findOne({ deviceid });
+    if (!device) {
+      return res.status(404).json({
+        status: "error",
+        message: `Device with ID ${deviceid} not found`,
+        status_code: 404,
+      });
+    }
+    if(device.status === "delivered") {
+      return res.status(400).json({
+        status: "error",
+        message: `Device with ID ${deviceid} is already delivered`,
+        status_code: 400,
+      });
+    }
+    await Device.updateOne(
+      { deviceid },
+      { $set: [{ status: "delivered" },{user:true},{activated:true}] }
+    );
+
+    res.json({
+      status: "success",
+      message: "Device status updated to 'delivered' successfully",
+      status_code: 200,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  } finally {
+    if (client) await client.close();
   }
 });
 

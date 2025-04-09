@@ -53,6 +53,11 @@ export default function DeviceScreen() {
           value={search}
           onChangeText={setSearch}
         />
+        {search.length > 0 && (
+          <TouchableOpacity onPress={() => setSearch('')} style={styles.clearIcon}>
+            <Ionicons name="close-circle" size={20} color="#888" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.filterContainer}>
@@ -76,7 +81,9 @@ export default function DeviceScreen() {
 
       {loading ? (
         <ActivityIndicator size="large" color="black" style={styles.loader} />
-      ) : (
+      ) : filteredDevices.length === 0 ? (
+           <Text style={styles.noDataText}>Device not found</Text>
+          ):(
         <FlatList
           data={filteredDevices}
           keyExtractor={(item) => item.deviceid}
@@ -115,7 +122,9 @@ const styles = StyleSheet.create({
   },
   searchIcon: { marginRight: 10 },
   searchInput: { flex: 1, fontSize: 16, color: '#333' },
-
+  clearIcon: {
+    paddingLeft: 8,
+  },
   filterContainer: {
     paddingHorizontal: 15,
     marginVertical: 10,
@@ -154,5 +163,11 @@ const styles = StyleSheet.create({
   deviceName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   deviceId: { fontSize: 14, color: '#777' },
   deviceStatus: { fontSize: 14, color: '#444', marginTop: 2 },
+  noDataText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 18,
+    color: '#666',
+  }
 });
 
