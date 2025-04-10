@@ -65,7 +65,7 @@ app.get("/dashboardcounts", async (req, res) => {
       status_code: 500,
     });
   } finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 

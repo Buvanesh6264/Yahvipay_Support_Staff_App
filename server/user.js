@@ -127,7 +127,7 @@ router.post("/register", async (req, res) => {
       status_code: 400
     });
   }finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -202,7 +202,7 @@ router.post("/login", async (req, res) => {
     });
   }
   finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -262,7 +262,7 @@ router.get("/userdata", async (req, res) => {
     });
   }
   finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -273,6 +273,31 @@ router.get("/validate", authenticateToken, (req, res) => {
     user: req.user,
     status_code: 200
 })
+});
+
+router.get('/allSuportId', async (req, res) => {
+  try{
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(collectionNameforuser);
+    const result = await collection.find(
+        {},
+        { projection: { supportid: 1, name: 1, _id: 0 } }
+    ).toArray();
+    // console.log(result);
+    res.json(result);
+  }catch (error) {
+    console.error("Login Error:", error);
+    res.status(400).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 400
+    });
+  }
+  finally {
+    if (client) await client.close();
+  }
 });
 
 module.exports = router;

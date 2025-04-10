@@ -123,8 +123,13 @@ export default function AgentParcelScreen() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate('ParcelDetail', { parcelNumber: item.parcelNumber });
+                  if(item.type==="outgoing"){
+                    navigation.navigate('ParcelDetail', { parcelNumber: item.parcelNumber });
+                  }
+                  if(item.type==="incoming"){
+                    navigation.navigate('returnparceldetials', { parcelNumber: item.parcelNumber });
                 }}
+              }
               >
                 <Card style={styles.card}>
                   <Card.Cover 

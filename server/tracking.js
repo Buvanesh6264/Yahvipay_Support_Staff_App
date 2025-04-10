@@ -77,7 +77,7 @@ router.post("/generate", async (req, res) => {
     console.error("Tracking API Error:", error);
     res.status(500).json({ status: "error", message: "Internal server error." });
   }finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -165,7 +165,7 @@ router.post("/parcelNumber", async (req, res) => {
       res.status(500).json({ status: "error", message: "Internal server error." });
     }
     finally {
-      await client.close();
+      if (client) await client.close();
     }
   });
   

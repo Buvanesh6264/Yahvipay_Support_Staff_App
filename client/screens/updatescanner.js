@@ -32,7 +32,7 @@ export default function UpdateScanner({ navigation }) {
 
   const handleBarcodeScanned = async ({ data }) => {
     setScanned(true);
-  console.log(data)
+  // console.log(data)
   if(data.startsWith("AC")){
   try {
     // console.log("in");
@@ -45,7 +45,7 @@ export default function UpdateScanner({ navigation }) {
     });
     // console.log("response")
     const result = await response.json();
-    console.log(result)
+    // console.log(result)
     if (response.ok && result.data) {
       console.log(result.data.instock)
       if (result.data.instock) {  
@@ -71,7 +71,7 @@ else{
         body: JSON.stringify({ deviceid:data }),
       });
       const result = await response.json();
-      console.log(result)
+      // console.log(result)
   
       if (response.ok && result.device) {
         console.log(result.device.status)

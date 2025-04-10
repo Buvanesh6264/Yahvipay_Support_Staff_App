@@ -20,8 +20,9 @@
     import UpdateParcelScreen from "./updateparcel";
     import UpdateScanner from "./updatescanner";
     import AgentParcelDetail from "./agentparceltracking";
-import BottomTabs from "./botemtabnavigator";
-import ReturnParcel from "./returningparcel";
+    import BottomTabs from "./botemtabnavigator";
+    import ReturnParcel from "./returningparcel";
+    import ReturnParcelDetials from "./returnparceldetials";
 
     const Stack = createStackNavigator();
 
@@ -49,6 +50,7 @@ import ReturnParcel from "./returningparcel";
         <Stack.Screen name="AgentParcelDetail" component={AgentParcelDetail} />
         <Stack.Screen name="Profile" component={ProfilePage} />
         <Stack.Screen name="DamagedParcelFromAgent" component={ReturnParcel} />
+        <Stack.Screen name="returnparceldetials" component={ReturnParcelDetials} />
         </Stack.Navigator>
     );
     }

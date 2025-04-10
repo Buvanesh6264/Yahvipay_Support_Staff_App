@@ -5,38 +5,38 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ReturnParcel() {
-//   const [parcels, setParcels] = useState([]);
+  const [parcels, setParcels] = useState([]);
   const [filteredParcels, setFilteredParcels] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-//   useEffect(() => {
-//     fetchParcels();
-//   }, []);
+  useEffect(() => {
+    fetchParcels();
+  }, []);
 
-//   const fetchParcels = async () => {
-//     try {
-//       const response = await fetch(apiUrl + "/parcel/allparcels");
-//       const data = await response.json();
-//       if (Array.isArray(data?.data)) {
-//         const sortedParcels = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-//         setParcels(sortedParcels);
-//         setFilteredParcels(sortedParcels);
-//       } else {
-//         console.warn("Unexpected data format: data.data is not an array");
-//         setParcels([]);
-//         setFilteredParcels([]);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching parcels:", error);
-//       setParcels([]);
-//       setFilteredParcels([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+  const fetchParcels = async () => {
+    try {
+      const response = await fetch(apiUrl + "/parcel/returnparcels");
+      const data = await response.json();
+      if (Array.isArray(data?.data)) {
+        const sortedParcels = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setParcels(sortedParcels);
+        setFilteredParcels(sortedParcels);
+      } else {
+        console.warn("Unexpected data format: data.data is not an array");
+        setParcels([]);
+        setFilteredParcels([]);
+      }
+    } catch (error) {
+      console.error("Error fetching parcels:", error);
+      setParcels([]);
+      setFilteredParcels([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (text) => {
     setSearchQuery(text);
@@ -46,86 +46,67 @@ export default function ReturnParcel() {
     setFilteredParcels(filtered);
   };
 
-//   const handleTrackPackage = (parcelNumber) => {
-//     navigation.navigate('TrackPackage', { parcelNumber });
-//   };
 
-//   const handleViewPackage = (parcelNumber) => {
-//     navigation.navigate('ParcelDetail', { parcelNumber });
-//   };
+  const handleViewPackage = (parcelNumber) => {
+    navigation.navigate('returnparceldetials', { parcelNumber });
+  };
 
-//   const handleSendParcel = (parcelNumber) => {
-//     Alert.alert(
-//       "Send Parcel",
-//       "Are you sure you want to send this parcel?",
-//       [
-//         {
-//           text: "Cancel",
-//           style: "cancel"
-//         },
-//         {
-//           text: "OK",
-//           onPress: async () => {
-//             try {
-//               const updateResponse = await fetch(`${apiUrl}/parcel/updatestatus`, {
-//                 method: 'POST',
-//                 headers: {
-//                   'Content-Type': 'application/json',
-//                 },
-//                 body: JSON.stringify({
-//                   parcelNumber: parcelNumber,
-//                   status: "sent"
-//                 }),
-//               });
+  const handleReceivedParcel = (parcelNumber) => {
+      Alert.alert(
+        "Send Parcel",
+        "Are you sure you received this parcel?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel"
+          },
+          {
+            text: "OK",
+            onPress: async () => {
+              try {
+                const updateResponse = await fetch(`${apiUrl}/parcel/updatereturnparcelstatus`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    parcelNumber: parcelNumber,
+                    status: "received"
+                  }),
+                });
+  
+                const updateResult = await updateResponse.json();
+  
+                if (!updateResponse.ok || updateResult.status !== "success") {
+                  console.error("Failed to update status:", updateResult.message);
+                  return;
+                }
+                Alert.alert("Success", "Parcel received!");
+                fetchParcels();
+  
+              } catch (error) {
+                console.error("Error during Reciving Parcel", error);
+              }
+            }
+          }
+        ]
+      );
+    };
 
-//               const updateResult = await updateResponse.json();
-
-//               if (!updateResponse.ok || updateResult.status !== "success") {
-//                 console.error("Failed to update status:", updateResult.message);
-//                 return;
-//               }
-
-//               const trackingResponse = await fetch(`${apiUrl}/tracking/generate`, {
-//                 method: 'POST',
-//                 headers: {
-//                   'Content-Type': 'application/json',
-//                 },
-//                 body: JSON.stringify({ parcelNumber }),
-//               });
-
-//               const trackingResult = await trackingResponse.json();
-
-//               if (!trackingResponse.ok || trackingResult.status !== "success") {
-//                 console.error("Failed to generate tracking:", trackingResult.message);
-//                 return;
-//               }
-
-//               Alert.alert("Success", "Parcel sent and tracking generated!");
-//               fetchParcels();
-
-//             } catch (error) {
-//               console.error("Error during send and tracking generation:", error);
-//             }
-//           }
-//         }
-//       ]
-//     );
-//   };
-
-//   const getStatusStyle = (status) => {
-//     switch (status?.toLowerCase()) {
-//       case "packed":
-//         return { color: "#6f42c1" };
-//       case "sent":
-//         return { color: "#17a2b8" };
-//       case "received":
-//         return { color: "#ffc107" };
-//       case "delivered":
-//         return { color: "#28a745" };
-//       default:
-//         return { color: "#6c757d" };
-//     }
-//   };
+  const getStatusStyle = (status) => {
+    switch (status?.toLowerCase()) {
+      case "packed":
+        return { color: "#6f42c1" };
+      case "sent":
+        return { color: "#17a2b8" };
+      case "received":
+        return { color: "#ffc107" };
+      case "delivered":
+        return { color: "#28a745" };
+      default:
+        return { color: "#6c757d" };
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -165,7 +146,7 @@ export default function ReturnParcel() {
             <Card style={styles.card}>
               <Card.Cover
                 source={{
-                  uri: 'https://imgs.search.brave.com/mN2Zk0Wyu2uZ81v8jKIq5Dp9bzIEJKKjJcwIsNZxWgc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA2LzM0Lzc3LzEz/LzM2MF9GXzYzNDc3/MTM2NF9aUmFwZ1ZH/Z0plZFBtSk04eEhV/ckNYS3ZRRUhFU2o1/YS5qcGc'
+                  uri: 'https://imgs.search.brave.com/LU0jLqxbxVDM5WRSZS7AbNiAnIjmhOjNe4tQMGSkXF8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvcHJldmll/dy0xeC8xNy8xMy9y/ZXR1cm4tcGFyY2Vs/LWljb24tZXhjaGFu/Z2Utb2YtZ29vZHMt/c2lnbi12ZWN0b3It/MjI2MjE3MTMuanBn'
                 }}
                 style={styles.image}
               />
@@ -176,26 +157,24 @@ export default function ReturnParcel() {
                 </Text>
               </Card.Content>
               <View style={styles.buttonContainer}>
-                {item.status?.toLowerCase() === 'packed' ? (
+                {item.status?.toLowerCase() === 'sent' && (
                   <TouchableOpacity
                     style={styles.sendButton}
-                    onPress={() => handleSendParcel(item.parcelNumber)}>
-                    <Ionicons name="send-outline" size={20} color="white" />
-                    <Text style={styles.buttonText}>  Send Parcel</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.trackButton}
-                    onPress={() => handleTrackPackage(item.parcelNumber)}>
-                    <Text style={styles.buttonText}>Track Package</Text>
+                    onPress={() => handleReceivedParcel(item.parcelNumber)}
+                  >
+                    <Ionicons name="checkmark-done-outline" size={20} color="white" />
+                    <Text style={styles.buttonText}>  Received Parcel</Text>
                   </TouchableOpacity>
                 )}
+
                 <TouchableOpacity
                   style={styles.viewButton}
-                  onPress={() => handleViewPackage(item.parcelNumber)}>
+                  onPress={() => handleViewPackage(item.parcelNumber)}
+                >
                   <Text style={styles.buttonText}>View Package</Text>
                 </TouchableOpacity>
-              </View>
+                </View>
+
             </Card>
           )}
         />
@@ -206,8 +185,8 @@ export default function ReturnParcel() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F6F9', paddingBottom: 10 },
-  navbar: { backgroundColor: '#007bff', elevation: 4 },
-  navbarTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+  navbar: { backgroundColor: '#fff', elevation: 4 },
+  navbarTitle: { color: 'black', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
   loader: { marginTop: 50 },
   addButton: { padding: 10 },
   card: {

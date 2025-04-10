@@ -48,6 +48,7 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
     try {
         const { pickupLocation, destination, agentid, devices, reciver, sender } = req.body;
         const supportid = req.user.supportid;
+        const supportname = req.user.name;
         const accessories = [];
         // const userLocation = pickupLocation;
         // console.log(req.body,'data')
@@ -109,6 +110,8 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
             destination,
             agentid,
             supportid,
+            supportname,
+            type:"outgoing",
             devices,
             accessories,
             reciver,
@@ -314,7 +317,7 @@ router.get("/userparcels", authenticatetoken, async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection(parcelCollection);
 
-    const parcels = await collection.find({supportid,status: { $ne: "delivered" }}).toArray();
+    const parcels = await collection.find({supportid,status: { $ne: "delivered" },type :{ $ne: "incoming" }}).toArray();
     
     res.status(200).json({
       status: "success",
@@ -342,7 +345,7 @@ router.get("/allparcels", async (req, res) => {
       const collection = db.collection(parcelCollection);
   
   
-      const parcels = await collection.find({ status: { $ne: "delivered" } }).toArray();``
+      const parcels = await collection.find({ status: { $ne: "delivered" },type :{ $ne: "incoming" } }).toArray();
   
       res.status(200).json({
         status: "success",
@@ -352,7 +355,6 @@ router.get("/allparcels", async (req, res) => {
         status_code: 200,
       });
   
-      client.close();
     } catch (error) {
       console.error("Fetch Parcels Error:", error);
       res.status(400).json({
@@ -608,13 +610,38 @@ router.post("/updatestatus", async (req, res) => {
   }
 });
 
-router.post("/returnOrDamageParcel", async (req, res) => {
+router.post("/returnParcel", async (req, res) => {
   try {
-    const { agentid, status,sender, devices,accessories,supportid} = req.body;
+    const { agentid, sender, devices, accessories, supportid, pickupLocation, destination,supportname,parcelNumber } = req.body;
+
     if (!agentid) {
       return res.status(400).json({
         status: "error",
-        message: "agentid is required",
+        message: "Agent ID is required",
+        status_code: 400,
+      });
+    }
+    
+    if (!sender) {
+      return res.status(400).json({
+        status: "error",
+        message: "Sender is required",
+        status_code: 400,
+      });
+    }
+    
+    if (!pickupLocation) {
+      return res.status(400).json({
+        status: "error",
+        message: "Pickup location is required",
+        status_code: 400,
+      });
+    }
+    
+    if (!destination) {
+      return res.status(400).json({
+        status: "error",
+        message: "Destination is required",
         status_code: 400,
       });
     }
@@ -622,22 +649,32 @@ router.post("/returnOrDamageParcel", async (req, res) => {
     if (!supportid) {
       return res.status(400).json({
         status: "error",
-        message: "supportid is required",
+        message: "Support ID is required",
         status_code: 400,
       });
     }
     
-    if (!devices || devices.length === 0) {
+    if (!parcelNumber) {
       return res.status(400).json({
         status: "error",
-        message: "At least one device ID is required",
+        message: "Parcel number is required",
         status_code: 400,
       });
     }
-    if (!["damaged", "return"].includes(status)) {
+    
+    if (!supportname) {
       return res.status(400).json({
         status: "error",
-        message: "Status must be either 'damaged' or 'return'",
+        message: "Support name is required",
+        status_code: 400,
+      });
+    }
+    
+
+    if (!devices || devices.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "At least one device is required",
         status_code: 400,
       });
     }
@@ -648,96 +685,101 @@ router.post("/returnOrDamageParcel", async (req, res) => {
     const Device = db.collection(devicesCollection);
     const Accessory = db.collection(accessoriesCollection);
 
-    for (let deviceid of devices) {
+    for (let { deviceid } of devices) {
       const device = await Device.findOne({ deviceid });
-      if (!device) {
-          return res.status(400).json({
-              status: "error",
-              message: `Device ${deviceid} not found`,
-              status_code: 400,
-          });
+      if (!device && device.agentid !== "") {
+        return res.status(400).json({
+          status: "error",
+          message: `Device ${deviceid} not found`,
+          status_code: 400,
+        });
       }
     }
-    const parcelNumber = generateParcelNumber();
+
+    // const parcelNumber = generateParcelNumber();
 
     await Parcel.insertOne({
       parcelNumber,
       agentid,
       supportid,
+      supportname,
       devices,
       accessories,
-      reciver,
+      pickupLocation,
+      destination,
+      reciver: "yavhipay",
       sender,
-      status,
+      type: "incoming",
+      status: "sent",
       createdAt: new Date(),
-  });
+    });
 
-    if (status === "damaged") {
-      await Promise.all(
-        devices.map((deviceid) =>
-          Device.updateOne(
+    await Promise.all(
+      devices.map(({ deviceid, status }) => {
+        if (status === "damaged") {
+          return Device.updateOne(
             { deviceid },
             {
               $set: {
                 status: "damaged",
                 Inventory: false,
+                parcelNumber,
+                user: false,
+                activated: false,
               },
             }
-          )
-        )
-      );
-      if (accessories.length > 0) {
-        await Promise.all(
-          accessories.map(async ({ id, quantity }) => {
-            const accessory = await Accessory.findOne({ accessoriesid: id ,status:{$nin:["notdamaged"]}});
-            if (!accessory) return;
-
-            const currentQty = parseInt(accessory.quantity) || 0;
-            const newQty = currentQty + parseInt(quantity);
-
-            await Accessory.updateOne(
-              { accessoriesid: id },
-              { $set: { quantity: newQty.toString() } }
-            );
-          })
-        );
-      }
-    } else if (status === "return") {
-      await Promise.all(
-        devices.map((deviceid) =>
-          Device.updateOne(
+          );
+        } 
+        if(status === "return") {
+          return Device.updateOne(
             { deviceid },
             {
               $set: {
-                status: "available",
+                status: "assigned",
                 parcelNumber,
+                user: false,
+                activated: false,
               },
             }
-          )
-        )
-      );
+          );
+        }
+      })
+    );
 
-      if (accessories.length > 0) {
-        await Promise.all(
-          accessories.map(async ({ id, quantity }) => {
-            const accessory = await Accessory.findOne({ accessoriesid: id ,status:{$nin:["damaged"]}});
+    if (accessories && accessories.length > 0) {
+      await Promise.all(
+        accessories.map(async ({ id, quantity, status }) => {
+          if (status === "return") {
+            const accessory = await Accessory.findOne({ accessoriesid: id ,status:{$ne:"damaged"}}); 
             if (!accessory) return;
 
             const currentQty = parseInt(accessory.quantity) || 0;
             const newQty = currentQty + parseInt(quantity);
 
             await Accessory.updateOne(
-              { accessoriesid: id },
+              { accessoriesid: id ,status:{$ne:"damaged"}},
               { $set: { quantity: newQty.toString() } }
             );
-          })
-        );
-      }
+          }
+          if(status === "damaged") {
+            const accessory = await Accessory.findOne({ accessoriesid: id ,status:{$ne:"notdamaged"}}); 
+            if (!accessory) return;
+
+            const currentQty = parseInt(accessory.quantity) || 0;
+            const newQty = currentQty + parseInt(quantity);
+
+            await Accessory.updateOne(
+              { accessoriesid: id ,status:{$ne:"notdamaged"}},
+              { $set: { quantity: newQty.toString() } }
+            );
+          }
+        })
+      );
     }
 
     res.status(200).json({
       status: "success",
-      message: `Parcel marked as ${status} and sent to yavhipay`,
+      message: `Parcel marked as sent and returned to yavhipay`,
       status_code: 200,
     });
   } catch (error) {
@@ -751,5 +793,118 @@ router.post("/returnOrDamageParcel", async (req, res) => {
     if (client) await client.close();
   }
 });
+
+router.get("/returnparcels", async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(parcelCollection);
+
+
+    const parcels = await collection.find({type :{ $ne: "outgoing" } }).toArray();
+// if(parcels.length ===  0){
+//   console.log("sucess")
+// }
+    res.status(200).json({
+      status: "success",
+      message: "Parcels retrieved successfully",
+      data: parcels,
+      
+      status_code: 200,
+    });
+
+  } catch (error) {
+    console.error("Fetch Parcels Error:", error);
+    res.status(400).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 400,
+    });
+  }finally {
+    if (client) await client.close();
+  }
+});
+
+router.post("/updatereturnparcelstatus",async(req,res)=>{
+  try {
+    const { parcelNumber, status } = req.body;
+    // console.log(req.body);
+    
+    if (!parcelNumber || !status) {
+      return res.status(400).json({
+        status: "error",
+        message: "Both 'parcelNumber' and 'status' are required"
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(parcelCollection);
+    const Device = db.collection(devicesCollection);
+    if(status === "received"){
+      const parcel = await collection.findOne({ parcelNumber });
+      if (!parcel) {
+          return res.status(400).json({
+              status: "error",
+              message: `Parcel ${parcelNumber} not found`,
+              status_code: 400,
+          });
+      }
+      const devices = parcel.devices || [];
+
+      for (let deviceid of devices) {
+          const device = await Device.findOne({ deviceid });
+          if (!device && device.agentid !== "") {
+              return res.status(400).json({
+                  status: "error",
+                  message: `Device ${deviceid} not found`,
+                  status_code: 400,
+              });
+          }
+          if( device.status ==="assigned"){
+            await device.updateOne(
+              { deviceid },
+              { $set: { agentid:"",Inventory: true,status:"available"}}
+            );
+          }
+          else{
+          await device.updateOne(
+            { deviceid },
+            { $set: { agentid:"",Inventory: true}}
+          );
+        }
+      }
+    }
+    const result = await collection.updateOne(
+      { parcelNumber: parcelNumber },
+      {
+        $set: {
+          status: status,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Parcel not found"
+      });
+    }
+    res.json({
+      status: "success",
+      message: "Parcel status updated successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server error",
+      error: error.message
+    });
+  } finally {
+    if (client) await client.close();
+  }
+})
 
 module.exports = router;

@@ -62,7 +62,7 @@ router.get("/userdevices", authenticateToken, async (req, res) => {
       status_code: 500,
     });
   } finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -102,6 +102,8 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       agentid: status === "available" ? "" : agentid,
       Inventory,
       type,
+      user:false,
+      activated:false,
       image: image || "",
       parcelNumber:"",
     });
@@ -120,7 +122,7 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       status_code: 500,
     });
   }finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -146,7 +148,7 @@ router.get("/alldevices", async (req, res) => {
       console.error("Fetch Devices Error:", error);
       res.status(500).json({ error: "Internal server error" });
   } finally {
-      await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -290,7 +292,7 @@ router.post("/deviceid", async (req, res) => {
       console.error("Fetch Device Error:", error);
       res.status(400).json({ error: "Internal server error" });
   } finally {
-      await client.close();
+    if (client) await client.close();
   }
 });
 
@@ -337,7 +339,7 @@ router.post("/agentid", async (req, res) => {
       status_code: 500,
     });
   } finally {
-    await client.close();
+    if (client) await client.close();
   }
 });
 

@@ -51,7 +51,7 @@ const DeviceDetail = ({ route }) => {
     }
 
     if (device.status === "damaged") {
-      if (device.agentid) {
+      if (device.agentid && device.Inventory === false) {
         return `Damaged device is with Agent (${device.agentid}).`;
       } else {
         return "Damaged device is back in inventory.";

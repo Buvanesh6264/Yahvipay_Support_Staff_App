@@ -38,8 +38,13 @@ export default function HomeScreen() {
   
     fetchCounts();
   }, []);
-  
+  const handelParcelNavigation = ()=> {
+    navigation.navigate('Parcels');
+  };
 
+  const handelAvailableDeviceNavigation = ()=> {
+    navigation.navigate('Devices');
+  };
   return (
     <SafeAreaView style={styles.safeContainer}>
   <View style={styles.headerContainer}>
@@ -51,9 +56,9 @@ export default function HomeScreen() {
       <ActivityIndicator size="large" color="black" style={styles.loader} />
     ) : (
       <View style={styles.statsContainer}>
-        <Card title="Total Parcels" value={parcelCount} />
-        <Card title="Available Devices" value={deviceCount} />
-        <Card title="Pending Deliveries" value={pendingDeliveries} />
+        <TouchableOpacity onPress={()=>{handelParcelNavigation()}}><Card title="Total Parcels" value={parcelCount} /></TouchableOpacity>
+        <TouchableOpacity onPress={()=>{handelAvailableDeviceNavigation()}}><Card title="Available Devices" value={deviceCount} /></TouchableOpacity>
+        <TouchableOpacity onPress={()=>{handelParcelNavigation()}}><Card title="Pending Deliveries" value={pendingDeliveries} /></TouchableOpacity>
       </View>
     )}
   </View>

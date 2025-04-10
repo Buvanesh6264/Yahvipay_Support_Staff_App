@@ -10,10 +10,10 @@ import {
 import { Card, Appbar } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 
-const ParcelDetail = ({ route }) => {
+const ReturnParcelDetials = ({ route }) => {
   const { parcelNumber } = route.params;
   const navigation = useNavigation();
   const [parcel, setParcel] = useState(null);
@@ -33,8 +33,11 @@ const ParcelDetail = ({ route }) => {
         });
 
         const data = await response.json();
+        // console.log("data",data);
         if (response.ok) {
-          setParcel(data.data);
+          const parcelData = data.data;
+        //   console.log("parceldata",parcelData)
+          setParcel(parcelData);
         } else {
           setError(data.message || "Failed to fetch parcel details");
         }
@@ -46,15 +49,6 @@ const ParcelDetail = ({ route }) => {
     };
     fetchParcelDetails();
   }, [parcelNumber]);
-
-  const handleNavigateToUpdateParcel = async () => {
-    try {
-      await AsyncStorage.setItem("parcelNumber", parcelNumber);
-      navigation.navigate("UpdateParcel", { parcelNumber });
-    } catch (error) {
-      console.error("Error saving parcel number:", error);
-    }
-  };
 
   if (loading) {
     return (
@@ -105,11 +99,11 @@ const ParcelDetail = ({ route }) => {
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="person" size={16} style={styles.icon} />
-              <Text style={styles.infoText}>Agent ID: {parcel.reciver}({parcel.agentid || "N/A"})</Text>
+              <Text style={styles.infoText}>Agent ID: {parcel.reciver} ({parcel.agentid || "N/A"})</Text>
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="support-agent" size={16} style={styles.icon} />
-              <Text style={styles.infoText}>Support ID: {parcel.supportname}({parcel.supportid || "N/A"})</Text>
+              <Text style={styles.infoText}>Support ID: {parcel.supportname || "N/A"} ({parcel.supportid || "N/A"})</Text>
             </View>
           </Card.Content>
         </Card>
@@ -121,21 +115,21 @@ const ParcelDetail = ({ route }) => {
               <Text style={styles.sectionTitle}>Devices</Text>
             </View>
             {parcel.devices?.length > 0 ? (
-            parcel.devices.map((device, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.infoRow}
-                onPress={() => navigation.navigate("DeviceDetail", { deviceid: device })}
-              >
-                <MaterialIcons name="devices" size={16} style={styles.icon} />
-                <Text style={[styles.infoText,]}>
-                  {device}
-                </Text>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={styles.infoText}>None</Text>
-          )}
+              parcel.devices.map((device, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.infoRow}
+                  onPress={() => navigation.navigate("DeviceDetail", { deviceid: device.deviceid })}
+                >
+                  <MaterialIcons name="devices" size={16} style={styles.icon} />
+                  <Text style={styles.infoText}>
+                    {device.deviceid} ({device.status})
+                  </Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.infoText}>None</Text>
+            )}
           </Card.Content>
         </Card>
 
@@ -149,7 +143,9 @@ const ParcelDetail = ({ route }) => {
               parcel.accessories.map((acc, index) => (
                 <View key={index} style={styles.infoRow}>
                   <MaterialIcons name="inventory" size={16} style={styles.icon} />
-                  <Text style={styles.infoText}>{acc.id} (Qty: {acc.quantity})</Text>
+                  <Text style={styles.infoText}>
+                    {acc.id} (Qty: {acc.quantity}, Status: {acc.status})
+                  </Text>
                 </View>
               ))
             ) : (
@@ -157,10 +153,6 @@ const ParcelDetail = ({ route }) => {
             )}
           </Card.Content>
         </Card>
-
-        <TouchableOpacity style={styles.button} onPress={handleNavigateToUpdateParcel}>
-          <Text style={styles.buttonText}>Update Parcel</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -201,7 +193,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 8,
-    marginBottom:2,
+    marginBottom: 2,
   },
   infoText: {
     fontSize: 16,
@@ -219,4 +211,4 @@ const styles = StyleSheet.create({
   error: { color: "red", textAlign: "center", marginTop: 20 },
 });
 
-export default ParcelDetail;
+export default ReturnParcelDetials;
