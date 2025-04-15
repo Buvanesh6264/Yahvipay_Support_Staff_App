@@ -31,7 +31,7 @@ export default function RegisterScreen() {
       const result = await response.json();
 
       if (response.ok) {
-        navigation.navigate('Login');
+        navigation.replace('Login');
       } else {
         if (result.errors) {
           if (result.errors.phone) setError("phone", { type: "server", message: result.errors.phone });
@@ -125,7 +125,7 @@ export default function RegisterScreen() {
 
       <Button mode="contained" onPress={handleSubmit(onSubmit)} loading={loading} style={styles.button}>REGISTER</Button>
       
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <TouchableOpacity onPress={() => navigation.replace('Login')}>
         <Text style={styles.link}>Already have an account? <Text style={styles.linkBold}>Login</Text></Text>
       </TouchableOpacity>
     </View>

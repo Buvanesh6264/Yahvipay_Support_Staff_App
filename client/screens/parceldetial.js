@@ -84,11 +84,15 @@ const ParcelDetail = ({ route }) => {
           <View style={styles.headerTextContainer}>
             <View style={styles.infoRow}>
               <MaterialIcons name="person" size={20} color="#fff" style={styles.icon} />
-              <Text style={styles.title}>{parcel.sender} ➝ {parcel.reciver}</Text>
+              <Text style={styles.title}>
+                {parcel.sender} ➝ {parcel.reciver}
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="location-on" size={20} color="#fff" style={styles.icon} />
-              <Text style={styles.subtitle}>{parcel.pickupLocation} ➝ {parcel.destination}</Text>
+              <Text style={styles.subtitle}>
+                {parcel.pickupLocation} ➝ {parcel.destination}
+              </Text>
             </View>
           </View>
         </View>
@@ -105,11 +109,15 @@ const ParcelDetail = ({ route }) => {
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="person" size={16} style={styles.icon} />
-              <Text style={styles.infoText}>Agent ID: {parcel.reciver}({parcel.agentid || "N/A"})</Text>
+              <Text style={styles.infoText}>
+                Agent ID: {parcel.reciver}({parcel.agentid || "N/A"})
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="support-agent" size={16} style={styles.icon} />
-              <Text style={styles.infoText}>Support ID: {parcel.supportname}({parcel.supportid || "N/A"})</Text>
+              <Text style={styles.infoText}>
+                Support ID: {parcel.supportname}({parcel.supportid || "N/A"})
+              </Text>
             </View>
           </Card.Content>
         </Card>
@@ -121,21 +129,19 @@ const ParcelDetail = ({ route }) => {
               <Text style={styles.sectionTitle}>Devices</Text>
             </View>
             {parcel.devices?.length > 0 ? (
-            parcel.devices.map((device, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.infoRow}
-                onPress={() => navigation.navigate("DeviceDetail", { deviceid: device })}
-              >
-                <MaterialIcons name="devices" size={16} style={styles.icon} />
-                <Text style={[styles.infoText,]}>
-                  {device}
-                </Text>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={styles.infoText}>None</Text>
-          )}
+              parcel.devices.map((device, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.infoRow}
+                  onPress={() => navigation.navigate("DeviceDetail", { deviceid: device })}
+                >
+                  <MaterialIcons name="devices" size={16} style={styles.icon} />
+                  <Text style={[styles.infoText]}>{device}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.infoText}>None</Text>
+            )}
           </Card.Content>
         </Card>
 
@@ -149,7 +155,9 @@ const ParcelDetail = ({ route }) => {
               parcel.accessories.map((acc, index) => (
                 <View key={index} style={styles.infoRow}>
                   <MaterialIcons name="inventory" size={16} style={styles.icon} />
-                  <Text style={styles.infoText}>{acc.id} (Qty: {acc.quantity})</Text>
+                  <Text style={styles.infoText}>
+                    {acc.id} (Qty: {acc.quantity})
+                  </Text>
                 </View>
               ))
             ) : (
@@ -158,9 +166,20 @@ const ParcelDetail = ({ route }) => {
           </Card.Content>
         </Card>
 
-        <TouchableOpacity style={styles.button} onPress={handleNavigateToUpdateParcel}>
-          <Text style={styles.buttonText}>Update Parcel</Text>
-        </TouchableOpacity>
+        {parcel.status?.toLowerCase() === 'packed' && (
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={handleNavigateToUpdateParcel}
+          >
+            <Text style={styles.buttonText}>Update Parcel</Text>
+          </TouchableOpacity>
+        )}
+        {parcel.status?.toLowerCase() !== 'packed' && (
+          <Text style={styles.statusMessage}>
+            Parcel cannot be updated because its status is {parcel.status}.
+            Only parcels with "packed" status can be updated.
+          </Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -169,7 +188,7 @@ const ParcelDetail = ({ route }) => {
 const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: "#f9f9f9" },
   scrollContainer: { padding: 16 },
-  appbar: { backgroundColor: "#fff", height: 25, marginTop: -20 },
+  appbar: { backgroundColor: "#fff" },
   navbarTitle: { color: "#333", fontSize: 22, fontWeight: "bold", textAlign: "center" },
   header: {
     flexDirection: "row",
@@ -201,7 +220,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 8,
-    marginBottom:2,
+    marginBottom: 2,
   },
   infoText: {
     fontSize: 16,
@@ -215,6 +234,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  statusMessage: {
+    textAlign: 'center',
+    color: '#888',
+    marginVertical: 10,
+    fontStyle: 'italic',
+  },
   loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   error: { color: "red", textAlign: "center", marginTop: 20 },
 });

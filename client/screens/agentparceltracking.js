@@ -159,12 +159,13 @@ const styles = StyleSheet.create({
   navbar: { backgroundColor: 'white', elevation: 3, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10 },
   navbarTitle: { color: '#333', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
   title: { marginBottom: 10, fontWeight: 'bold', textAlign: 'center' },
-  picker: { backgroundColor: 'white', marginBottom: 20 ,borderRadius: 12,},
+  picker: { backgroundColor: 'white', marginBottom: 20 ,borderRadius: 12,elevation:4,borderRadius:20},
   placeholderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    // elevation:3
   },
   placeholderText: {
     fontSize: 16,

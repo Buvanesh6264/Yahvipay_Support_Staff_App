@@ -215,19 +215,41 @@ const UpdateParcelScreen = ({ route }) => {
   )}
 
   <Button title="Update Parcel" onPress={handleUpdateParcel} />
-  <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text>Enter quantity for Accessory ID: {currentAccessoryId}</Text>
+  <Modal 
+        visible={modalVisible} 
+        transparent 
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Add Accessory Quantity</Text>
+            <Text style={styles.modalSubtitle}>Accessory ID: {currentAccessoryId}</Text>
+            
             <TextInput
               value={quantity}
               onChangeText={setQuantity}
               keyboardType="numeric"
-              placeholder="Enter Quantity"
-              style={styles.input}
+              placeholder="Enter quantity"
+              placeholderTextColor="#999"
+              style={styles.modalInput}
             />
-            <Button title="OK" onPress={handleAddAccessory} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="red" />
+            
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={handleAddAccessory}
+              >
+                <Text style={styles.modalButtonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -287,8 +309,77 @@ const styles = StyleSheet.create({
     color: "#888",
     marginBottom: 10,
   },
-  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10 },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 5,
+    color: '#333',
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  confirmButton: {
+    backgroundColor: '#007bff',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  cancelButtonText: {
+    color: '#333',
+  },
+  confirmButtonText: {
+    color: 'white',
+  },
 });
 
 export default UpdateParcelScreen;

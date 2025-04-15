@@ -50,7 +50,7 @@ const ProfilePage = () => {
   const handleLogout = async () => {
     const token = await AsyncStorage.removeItem("token");
     navigation.replace("Login");
-    console.log("Retrieved Token:", token);
+    // console.log("Retrieved Token:", token);
   };
 
   if (loading) {

@@ -130,7 +130,7 @@ router.post("/addparcel", authenticatetoken, async (req, res) => {
                             supportid,
                             agentid,
                             parcelNumber,
-                            Inventory: false,
+                            // Inventory: false,
                         },
                     }
                 )
@@ -248,7 +248,7 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
                           status: "assigned",
                           supportid,
                           agentid,
-                          Inventory: false,
+                          // Inventory: false,
                       },
                   }
               )
@@ -316,9 +316,18 @@ router.get("/userparcels", authenticatetoken, async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
     const collection = db.collection(parcelCollection);
-
-    const parcels = await collection.find({supportid,status: { $ne: "delivered" },type :{ $ne: "incoming" }}).toArray();
+    const { status } = req.query;
+    let query = {
+      supportid:supportid,
+      type: { $ne: "incoming" },
+      status: { $ne: "received" }
+    };
     
+    if (status && status.toLowerCase() !== "all") {
+      query.status = { $regex: new RegExp(`^${status}$`, "i") };
+    }
+    const parcels = await collection.find(query).toArray();
+
     res.status(200).json({
       status: "success",
       message: "Parcels retrieved successfully",
@@ -333,40 +342,50 @@ router.get("/userparcels", authenticatetoken, async (req, res) => {
       description: "Something went wrong on the server",
       status_code: 500,
     });
-  }finally {
+  } finally {
     if (client) await client.close();
   }
 });
 
 router.get("/allparcels", async (req, res) => {
-    try {
-      await client.connect();
-      const db = client.db(dbName);
-      const collection = db.collection(parcelCollection);
-  
-  
-      const parcels = await collection.find({ status: { $ne: "delivered" },type :{ $ne: "incoming" } }).toArray();
-  
-      res.status(200).json({
-        status: "success",
-        message: "Parcels retrieved successfully",
-        data: parcels,
-        
-        status_code: 200,
-      });
-  
-    } catch (error) {
-      console.error("Fetch Parcels Error:", error);
-      res.status(400).json({
-        status: "error",
-        message: "Internal server error",
-        description: "Something went wrong on the server",
-        status_code: 400,
-      });
-    }finally {
-      if (client) await client.close();
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(parcelCollection);
+
+    const { status } = req.query;
+
+    let query = {
+      type: { $ne: "incoming" },
+      status: { $ne: "received" }
+    };
+    
+    if (status && status.toLowerCase() !== "all") {
+      query.status = { $regex: new RegExp(`^${status}$`, "i") };
     }
+    
+
+    const parcels = await collection.find(query).toArray();
+
+    res.status(200).json({
+      status: "success",
+      message: "Parcels retrieved successfully",
+      data: parcels,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Parcels Error:", error);
+    res.status(400).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 400,
+    });
+  } finally {
+    if (client) await client.close();
+  }
 });
+
 
 // router.get("/parcelcount", async (req, res) => {
 //     try {
@@ -579,6 +598,32 @@ router.post("/updatestatus", async (req, res) => {
           }
       }
     }
+    if(status === "sent"){
+      const parcel = await collection.findOne({ parcelNumber });
+      if (!parcel) {
+          return res.status(400).json({
+              status: "error",
+              message: `Parcel ${parcelNumber} not found`,
+              status_code: 400,
+          });
+      }
+      const devices = parcel.devices || [];
+
+      for (let deviceid of devices) {
+          const device = await Device.findOne({ deviceid });
+          if (!device) {
+              return res.status(400).json({
+                  status: "error",
+                  message: `Device ${deviceid} not found`,
+                  status_code: 400,
+              });
+          }
+          await Device.updateOne(
+            { deviceid },
+            { $set: { Inventory:false}}
+          );
+      }
+    }
     const result = await collection.updateOne(
       { parcelNumber: parcelNumber },
       {
@@ -715,8 +760,22 @@ router.post("/returnParcel", async (req, res) => {
     });
 
     await Promise.all(
-      devices.map(({ deviceid, status }) => {
+      devices.map(({ deviceid, status ,DamageMsg}) => {
+        if(!status){
+          return res.status(400).json({
+            status: "error",
+            message: "status is required for devices",
+            status_code: 400,
+          });
+        }
         if (status === "damaged") {
+          if(!DamageMsg){
+            return res.status(400).json({
+              status: "error",
+              message: "DamageMsg is required for damaged devices",
+              status_code: 400,
+            });
+          }
           return Device.updateOne(
             { deviceid },
             {
@@ -724,6 +783,7 @@ router.post("/returnParcel", async (req, res) => {
                 status: "damaged",
                 Inventory: false,
                 parcelNumber,
+                DamageMsg ,
                 user: false,
                 activated: false,
               },
@@ -801,7 +861,7 @@ router.get("/returnparcels", async (req, res) => {
     const collection = db.collection(parcelCollection);
 
 
-    const parcels = await collection.find({type :{ $ne: "outgoing" } }).toArray();
+    const parcels = await collection.find({type :{ $ne: "outgoing" },status:{$ne:"received"} }).toArray();
 // if(parcels.length ===  0){
 //   console.log("sucess")
 // }

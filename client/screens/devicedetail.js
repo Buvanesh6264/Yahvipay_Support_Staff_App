@@ -41,11 +41,12 @@ const DeviceDetail = ({ route }) => {
     if (device.status === "available") {
       return "Device is in inventory.";
     }
-
-    if (device.status === "assigned" && device.agentid) {
+    if (device.status === "assigned" && device.agentid && device.Inventory === false) {
       return `Device is with Agent (${device.agentid}).`;
     }
-
+    if (device.status === "assigned" && device.agentid && device.Inventory === true) {
+      return "Device is in inventory.";
+    }
     if (device.user && device.activated) {
       return "Device is with the user.";
     }
@@ -124,6 +125,18 @@ const DeviceDetail = ({ route }) => {
             label="Parcel Number"
             value={device.parcelNumber || "N/A"}
           />
+        <DetailCard
+          label="Device Usage"
+          value={
+            device.Used === 0
+              ? "This device is brand new."
+              : `${device.Used} user have used this device before.`
+          }
+        />
+
+        {device.status === "damaged" && device.DamageMsg && (
+          <DetailCard label="Damage Note" value={device.DamageMsg} />
+        )}
         </View>
 
         {/* <View style={styles.historyContainer}>

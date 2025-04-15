@@ -163,7 +163,7 @@ router.post("/login", async (req, res) => {
     const collection = db.collection(collectionNameforuser);
 
     const user = await collection.findOne({ phone });
-
+    // console.log(user)
     if (!user) {
       return res.status(400).json({
         status: "error",

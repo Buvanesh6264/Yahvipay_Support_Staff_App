@@ -1,50 +1,56 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, TextInput, ScrollView } from 'react-native';
 import { Appbar, Card, Text } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 
 export default function ParcelScreen() {
   const [parcels, setParcels] = useState([]);
-  const [filteredParcels, setFilteredParcels] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('');
   const navigation = useNavigation();
+  const route = useRoute(); 
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
     fetchParcels();
-  }, []);
+  }, [statusFilter]);
+
+  useEffect(() => {
+    if (route.params?.initialStatus) {
+      setStatusFilter(route.params.initialStatus);
+    } else {
+      setStatusFilter('');
+    }
+  }, [route.params?.initialStatus]);
 
   const fetchParcels = async () => {
     try {
-      const response = await fetch(apiUrl + "/parcel/allparcels");
+      const url = statusFilter 
+        ? `${apiUrl}/parcel/allparcels?status=${statusFilter}`
+        : `${apiUrl}/parcel/allparcels`;
+      const response = await fetch(url);
       const data = await response.json();
       if (Array.isArray(data?.data)) {
         const sortedParcels = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setParcels(sortedParcels);
-        setFilteredParcels(sortedParcels);
       } else {
         console.warn("Unexpected data format: data.data is not an array");
         setParcels([]);
-        setFilteredParcels([]);
       }
     } catch (error) {
       console.error("Error fetching parcels:", error);
       setParcels([]);
-      setFilteredParcels([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (text) => {
-    setSearchQuery(text);
-    const filtered = parcels.filter((parcel) =>
-      parcel.parcelNumber.toString().includes(text)
-    );
-    setFilteredParcels(filtered);
-  };
+  const filtered = parcels.filter((parcel) =>
+    parcel.parcelNumber.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleTrackPackage = (parcelNumber) => {
     navigation.navigate('TrackPackage', { parcelNumber });
@@ -53,7 +59,7 @@ export default function ParcelScreen() {
   const handleViewPackage = (parcelNumber) => {
     navigation.navigate('ParcelDetail', { parcelNumber });
   };
-
+  
   const handleSendParcel = (parcelNumber) => {
     Alert.alert(
       "Send Parcel",
@@ -118,10 +124,10 @@ export default function ParcelScreen() {
         return { color: "#6f42c1" };
       case "sent":
         return { color: "#17a2b8" };
-      case "received":
-        return { color: "#ffc107" };
-      case "delivered":
-        return { color: "#28a745" };
+      // case "received":
+      //   return { color: "#ffc107" };
+      // case "delivered":
+      //   return { color: "#28a745" };
       default:
         return { color: "#6c757d" };
     }
@@ -135,33 +141,43 @@ export default function ParcelScreen() {
           <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('CreateParcel')} />
         </TouchableOpacity>
       </Appbar.Header>
-      {/* <TouchableOpacity
-          style={styles.agentbtn}
-          onPress={() => navigation.navigate("AgentParcelDetail")}>
-          <Text style={styles.buttonText}>Track Agents parcels</Text>
-        </TouchableOpacity> */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
-          <TextInput
-            placeholder="Search by Parcel Number"
-            placeholderTextColor="#888"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            style={styles.searchInput}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => handleSearch('')} style={styles.clearIcon}>
-              <Ionicons name="close-circle" size={20} color="#888" />
-            </TouchableOpacity>
-          )}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+        <TextInput
+          placeholder="Search by Parcel Number"
+          placeholderTextColor="#888"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          style={styles.searchInput}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearIcon}>
+            <Ionicons name="close-circle" size={20} color="#888" />
+          </TouchableOpacity>
+        )}
+      </View>
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Filter by Status:</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={statusFilter}
+            onValueChange={(itemValue) => setStatusFilter(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="All" value="" />
+            <Picker.Item label="Packed" value="packed" />
+            <Picker.Item label="Sent" value="sent" />
+            {/* <Picker.Item label="Received" value="received" /> */}
+          </Picker>
+        </View>
       </View>
       {loading ? (
         <ActivityIndicator size="large" color="#007bff" style={styles.loader} />
-      ) : filteredParcels.length === 0 ? (
-        <Text style={styles.noDataText}>parcel not found</Text>
-      ): (
+      ) : filtered.length === 0 ? (
+        <Text style={styles.noDataText}>Parcel not found</Text>
+      ) : (
         <FlatList
-          data={filteredParcels}
+          data={filtered}
           keyExtractor={(item) => item.parcelNumber.toString()}
           renderItem={({ item }) => (
             <Card style={styles.card}>
@@ -173,15 +189,17 @@ export default function ParcelScreen() {
               />
               <Card.Title title={`Parcel No: ${item.parcelNumber}`} titleStyle={styles.cardTitle} />
               <Card.Content>
-                <Text style={[styles.statusText, getStatusStyle(item.status)]}>
-                  <Text style={styles.boldLabel}>Status:</Text> {item.status?.toUpperCase()}
-                </Text>
+                <View style={styles.statusContainer}>
+                  <Text style={[styles.statusText, getStatusStyle(item.status)]}>
+                    <Text style={styles.boldLabel}>Status:</Text> {item.status?.toUpperCase()}
+                  </Text>
+                </View>
               </Card.Content>
               <View style={styles.buttonContainer}>
                 {item.status?.toLowerCase() === 'packed' ? (
                   <TouchableOpacity
                     style={styles.sendButton}
-                    onPress={() => handleSendParcel(item.parcelNumber)}>
+                    onPress={() => handleSendParcel(item.parcelNumber)} >
                     <Ionicons name="send-outline" size={20} color="white" />
                     <Text style={styles.buttonText}>  Send Parcel</Text>
                   </TouchableOpacity>
@@ -239,15 +257,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 3,
   },
-  agentbtn: {
-    backgroundColor: '#28a745',
-    margin: 20,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    elevation: 3,
-  },
-  image: { height: 180, resizeMode: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   sendButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -256,11 +265,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 8,
     elevation: 3,
-  },
-  boldLabel: {
-    fontWeight: 'bold',
-    color: '#444',
-    textAlign: 'center',
   },
   viewButton: {
     backgroundColor: '#007bff',
@@ -290,15 +294,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 3,
   },
+  statusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },  
   searchIcon: { marginRight: 10 },
-  searchInput: { flex: 1, fontSize: 16, color: '#333' },
-  noDataText: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 18,
-    color: '#666',
+  searchInput: { flex: 1, fontSize: 16 },
+  clearIcon: { marginLeft: 10 },
+  noDataText: { textAlign: 'center', fontSize: 18, marginTop: 50 },
+  filterContainer: {
+    paddingHorizontal: 15,
+    marginVertical: 10,
   },
-  clearIcon: {
-    paddingLeft: 8,
+  filterLabel: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+    fontWeight: '600',
   },
+  pickerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    elevation: 3, 
+  },
+  picker: { height: 50, width: '100%' },
+  image: { width: '100%', height: 180, borderRadius: 8, marginBottom: 10 },
+  boldLabel: { fontWeight: 'bold' },
 });

@@ -66,7 +66,6 @@ router.get("/userdevices", authenticateToken, async (req, res) => {
   }
 });
 
-
 router.post("/adddevice", authenticateToken, async (req, res) => {
   try {
     const { devicename, status, agentid, image, deviceid } = req.body;
@@ -382,7 +381,7 @@ router.post("/updatedevicestatus", async (req, res) => {
     }
     await Device.updateOne(
       { deviceid },
-      { $set: { status: "delivered", user: true, activated: true }}
+      { $set: { status: "delivered", user: true, activated: true, }}
     );
 
     res.json({

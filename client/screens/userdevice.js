@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     elevation: 3,
   },
-  picker: { height: 45, fontSize: 16, color: "#333" },
+  picker: { height: 45, fontSize: 16, color: "#333" ,padding: 25,},
   loader: { marginTop: 50 },
 
   card: {

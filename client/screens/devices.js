@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import { Appbar, Card, Text, Button } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,useRoute  } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,12 +10,22 @@ export default function DeviceScreen() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
+  const route = useRoute(); 
   const navigation = useNavigation();
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
     fetchDevices();
   }, [status]);
+
+  useEffect(() => {
+    if (route.params?.initialStatus) {
+      setStatus(route.params.initialStatus);
+    }
+    else{
+      setStatus('');
+    }
+  }, [route.params?.initialStatus]);
 
   const fetchDevices = async () => {
     try {
@@ -40,7 +50,7 @@ export default function DeviceScreen() {
         {/* <Appbar.BackAction onPress={() => navigation.navigate('Main')} /> */}
         <Appbar.Content title="Device Inventory" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add-outline" size={24} color="black" onPress={() => navigation.navigate('QRScan')}/>
+          <Ionicons name="add-outline" size={25} color="black" style={{fontWeight: 'bold'}} onPress={() => navigation.navigate('QRScan')}/>
         </TouchableOpacity>
       </Appbar.Header>
 
@@ -110,7 +120,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9F9F9' },
   navbar: { backgroundColor: 'white', elevation: 3, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10 },
   navbarTitle: { color: '#333', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
-  addButton: { padding: 10 },
+  addButton: { padding: 10},
   searchContainer: {
     flexDirection: 'row',
     backgroundColor: 'white',
@@ -146,6 +156,7 @@ const styles = StyleSheet.create({
     height: 45,
     fontSize: 16,
     color: '#333',
+    padding: 25,
   },
   loader: { marginTop: 50 },
 

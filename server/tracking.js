@@ -140,11 +140,11 @@ router.post("/parcelNumber", async (req, res) => {
         }
       }
   
-      if (latestStatus === "Out for Delivery") {
-        let deliveryDate = new Date(currentTime);
-        deliveryDate.setDate(deliveryDate.getDate() + 1);
-        expectedDelivery = deliveryDate.toISOString();
-      }
+      // if (latestStatus === "Out for Delivery") {
+      //   let deliveryDate = new Date(currentTime);
+      //   deliveryDate.setDate(deliveryDate.getDate() + 1);
+      //   expectedDelivery = deliveryDate.toISOString();
+      // }
   
       res.status(200).json({
         status: "success",

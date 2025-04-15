@@ -65,7 +65,14 @@ export default function LoginScreen() {
         navigation.replace("Main"); 
         // console.error(result.message);
         setErrorMessage(result.message); 
+        // console.log(result.message,"msg")
       }
+      else {
+        // console.log("msg",result.message)
+        // console.error("Login Failed:", result.message);
+        setErrorMessage(result.message); 
+      }
+
     } catch (error) {
       console.error("Login Error:", error);
       setErrorMessage("Network error. Please try again later."); 
@@ -133,7 +140,7 @@ export default function LoginScreen() {
         LOGIN
       </Button>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+      <TouchableOpacity onPress={() => navigation.replace("Register")}>
         <Text style={styles.link}>
           Don't have an account? <Text style={styles.linkBold}>Register Here</Text>
         </Text>
