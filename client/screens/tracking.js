@@ -43,7 +43,7 @@ export default function TrackingScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate('Main')} color="white" />
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="white" />
         <Appbar.Content title="Tracking Details" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 

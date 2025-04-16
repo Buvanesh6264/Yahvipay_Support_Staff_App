@@ -8,6 +8,7 @@ const deviceRoutes = require("./device.js");
 const parcellRoutes = require("./parcell.js");
 const trackingRoutes = require("./tracking.js");
 const accessories = require("./accessory.js");
+const ticketesRouts = require("./tickets.js");
 
 
 const app = express();
@@ -26,6 +27,7 @@ app.use("/device", deviceRoutes);
 app.use("/parcel", parcellRoutes);
 app.use("/tracking", trackingRoutes);
 app.use("/accessory", accessories);
+app.use("/tickets", ticketesRouts);
 
 
 app.get("/", (req, res) => {

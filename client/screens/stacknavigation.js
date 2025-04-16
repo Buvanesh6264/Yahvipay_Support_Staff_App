@@ -23,6 +23,10 @@
     import BottomTabs from "./botemtabnavigator";
     import ReturnParcel from "./returningparcel";
     import ReturnParcelDetials from "./returnparceldetials";
+import TicketScreen from "./tickets";
+import ParcelRequesTicketDetail from "./parcelrequesdetials";
+import UserTicketScreen from "./userticketsparcelrequests";
+import AgentInventoryScreen from "./marketingagentinventory";
 
     const Stack = createStackNavigator();
 
@@ -51,6 +55,10 @@
         <Stack.Screen name="Profile" component={ProfilePage} />
         <Stack.Screen name="DamagedParcelFromAgent" component={ReturnParcel} />
         <Stack.Screen name="returnparceldetials" component={ReturnParcelDetials} />
+        <Stack.Screen name="ticketscreen" component={TicketScreen} />
+        <Stack.Screen name="ParcelRequestTicketDetail" component={ParcelRequesTicketDetail} />
+        <Stack.Screen name="Userticketscreen" component={UserTicketScreen} />
+        <Stack.Screen name="AgentInventoryScreen" component={AgentInventoryScreen} />
         </Stack.Navigator>
     );
     }

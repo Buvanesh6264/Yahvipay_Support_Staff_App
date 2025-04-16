@@ -56,7 +56,7 @@ export default function DeviceScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate('Main')} />
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="My Devices" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
           <Ionicons name="add-outline" size={24} color="black" onPress={() => navigation.navigate('QRScan')}/>

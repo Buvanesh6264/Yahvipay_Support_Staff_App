@@ -16,6 +16,7 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 
+
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [deviceCount, setDeviceCount] = useState(0);
@@ -101,11 +102,10 @@ export default function HomeScreen() {
         <View style={styles.sectionContainer}>
           <Section
             title="Device"
-            items={["Add Device", "Device Inventory", "Devices Asigned to Me"]}
-            screens={["QRScan", "Devices", "UserDevices"]}
+            items={["Add Device", "Device Inventory", "Devices Asigned to Me","Agent Inventory"]}
+            screens={["QRScan", "Devices", "UserDevices","AgentInventoryScreen"]}
             navigation={navigation}
           />
-
           <Section
             title="Parcel"
             items={[
@@ -129,6 +129,12 @@ export default function HomeScreen() {
             title="Accessories"
             items={["Accessories Inventory"]}
             screens={["Accesories"]}
+            navigation={navigation}
+          />
+          <Section
+            title="Tickets"
+            items={["Ticket","Parcel Request Ticket"]}
+            screens={["ticketscreen","Userticketscreen"]}
             navigation={navigation}
           />
         </View>
@@ -169,6 +175,15 @@ const Section = ({ title, items, screens, navigation }) => {
         return (
           <Entypo
             name="tools"
+            size={22}
+            color="#333"
+            style={styles.icon}
+          />
+        );
+        case "Tickets":
+        return (
+          <Entypo
+            name="ticket"
             size={22}
             color="#333"
             style={styles.icon}

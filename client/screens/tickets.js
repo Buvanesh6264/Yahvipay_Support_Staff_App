@@ -1,0 +1,183 @@
+import React, { useEffect, useState } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Text } from 'react-native';
+import { Appbar, Card } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
+export default function TicketScreen() {
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [token,setToken] = useState("");
+  const navigation = useNavigation();
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  useEffect(() => {
+    fetchToken();
+    fetchTickets();
+  }, []);
+
+  const fetchToken = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+      } else {
+        console.error("No token found in AsyncStorage");
+      }
+    } catch (error) {
+      console.error("Error fetching token from AsyncStorage:", error);
+    }
+  };
+
+  const fetchTickets = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/tickets/all`);
+      const result = await response.json();
+      if (Array.isArray(result?.data)) {
+        const sorted = result.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setTickets(sorted);
+      } else {
+        console.warn("Unexpected ticket format");
+        setTickets([]);
+      }
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleView = (ticketNumber) => {
+    navigation.navigate('ParcelRequestTicketDetail', { ticketNumber });
+  };
+
+  const handleAsignParcel = (ticketNumber) => {
+    Alert.alert(
+      "Assign Parcel",
+      "Are you sure you want to Assign this parcel to you?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              console.log(ticketNumber);
+              const updateResponse = await fetch(`${apiUrl}/tickets/updatestatus`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`, 
+                },
+                body: JSON.stringify({
+                  ticketNumber: ticketNumber,
+                  status: "Asigned"
+                }),
+              });
+  
+              const updateResult = await updateResponse.json();
+  
+              if (!updateResponse.ok || updateResult.status !== "success") {
+                console.error("Failed to update status:", updateResult.message);
+                Alert.alert("Error", updateResult.message || "Failed to update status.");
+                return;
+              }
+  
+              Alert.alert("Success", "Parcel Assigned Successfully!");
+              fetchTickets(); 
+  
+            } catch (error) {
+              console.error("Error during Assigning:", error);
+              Alert.alert("Error", "An unexpected error occurred.");
+            }
+          }
+        }
+      ]
+    );
+  };
+  
+
+  return (
+    <View style={styles.container}>
+      <Appbar.Header style={styles.navbar}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="white" />
+        <Appbar.Content title="Tickets" titleStyle={styles.navbarTitle} />
+      </Appbar.Header>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#007bff" style={styles.loader} />
+      ) : tickets.length === 0 ? (
+        <Text style={styles.noDataText}>No tickets found</Text>
+      ) : (
+        <FlatList
+          data={tickets}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <Card style={styles.card}>
+              <Card.Title title={`Ticket Type: ${item.type}`} titleStyle={styles.cardTitle} />
+              <Card.Content>
+                <Text style={styles.detailText}><Text style={styles.bold}>Ticket No:</Text> {item.ticketNumber}</Text>
+                <Text style={styles.detailText}><Text style={styles.bold}>Agent ID:</Text> {item.agentid}</Text>
+                <Text style={styles.detailText}><Text style={styles.bold}>Status:</Text> {item.status}</Text>
+              </Card.Content>
+              <View style={styles.buttonContainer}>
+              {item.status?.toLowerCase() === 'reqested' && (
+                  <TouchableOpacity style={styles.generateButton} onPress={() => handleAsignParcel(item.ticketNumber)}>
+                    <Text style={styles.buttonText}>Assign Parcel</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity style={styles.viewButton} onPress={() => handleView(item.ticketNumber)}>
+                  <Text style={styles.buttonText}>View</Text>
+                </TouchableOpacity>
+              </View>
+            </Card>
+          )}
+        />
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6F9' },
+  navbar: { backgroundColor: '#007bff', elevation: 4 },
+  navbarTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+  loader: { marginTop: 50 },
+  noDataText: { textAlign: 'center', fontSize: 18, marginTop: 50 },
+  card: {
+    marginHorizontal: 15,
+    marginVertical: 10,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 5,
+    paddingBottom: 10,
+  },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center' },
+  detailText: { fontSize: 16, marginTop: 5 },
+  bold: { fontWeight: 'bold' },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 15,
+  },
+  viewButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  generateButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+});

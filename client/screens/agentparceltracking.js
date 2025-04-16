@@ -18,7 +18,7 @@ export default function AgentParcelScreen() {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const response = await fetch("http://192.168.4.74:4000/allAgentId");
+        const response = await fetch("http://192.168.1.21:4000/allAgentId");
         const data = await response.json();
         const ids = data.map((agent) => agent.id);
         setAgentList(ids);
@@ -72,7 +72,7 @@ export default function AgentParcelScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate('Main')} />
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Agent Parcel Tracking" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
       <View style={styles.content}>
