@@ -80,23 +80,34 @@ export default function HomeScreen() {
         {loading ? (
           <ActivityIndicator size="large" color="black" style={styles.loader} />
         ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.statsScroll}
-          >
-            {renderStatusCards(deviceStatusCounts, "Device")}
-            {renderStatusCards(parcelStatusCounts, "Parcel")}
-            <TouchableOpacity
-              onPress={() =>
-              navigation.navigate("DamagedParcelFromAgent")
-              }
+          <>
+            <Text style={styles.groupTitle}>Device Status</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.cardGroup}
             >
-              <Card title="Incoming Parcels" value={pendingDeliveries} />
-            </TouchableOpacity>
-          </ScrollView>
+              {renderStatusCards(deviceStatusCounts, "Device")}
+            </ScrollView>
+
+            <Text style={styles.groupTitle}>Parcel Status</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.cardGroup}
+            >
+              {renderStatusCards(parcelStatusCounts, "Parcel")}
+              <TouchableOpacity
+                onPress={() => navigation.navigate("DamagedParcelFromAgent")}
+              >
+                <Card title="Incoming Parcels" value={pendingDeliveries} />
+              </TouchableOpacity>
+            </ScrollView>
+          </>
         )}
       </View>
+
+
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.sectionContainer}>
@@ -133,8 +144,8 @@ export default function HomeScreen() {
           />
           <Section
             title="Tickets"
-            items={["Ticket","Parcel Request Ticket"]}
-            screens={["ticketscreen","Userticketscreen"]}
+            items={["Ticket","Parcel Request Ticket",]}
+            screens={["ticketscreen","Userticketscreen","Agentticketchat"]}
             navigation={navigation}
           />
         </View>
@@ -324,4 +335,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
   },
+  groupTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    paddingHorizontal: 15,
+    marginBottom: 10,
+    marginTop: 20,
+  },
+  
+  cardGroup: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
+  
 });

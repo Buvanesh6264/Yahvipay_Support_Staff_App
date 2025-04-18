@@ -345,7 +345,7 @@ router.post("/agentid", async (req, res) => {
 router.post("/updatedevicestatus", async (req, res) => {
   try {
     const { deviceid, status } = req.body;
-
+    // console.log(req.body)
     if (!deviceid || !status) {
       return res.status(400).json({
         status: "error",
@@ -381,23 +381,35 @@ router.post("/updatedevicestatus", async (req, res) => {
     }
     await Device.updateOne(
       { deviceid },
-      { $set: { status: "delivered", user: true, activated: true, }}
+      {
+        $set: {
+          status: "delivered",
+          user: true,
+          activated: true,
+        },
+        $inc: {
+          Used: 1, 
+        },
+      }
     );
+    
 
     res.json({
       status: "success",
       message: "Device status updated to 'delivered' successfully",
       status_code: 200,
     });
+    await client.close();
   } catch (error) {
     res.status(500).json({
       status: "error",
       message: "Internal Server Error",
       error: error.message,
     });
-  } finally {
-    if (client) await client.close();
-  }
+  } 
+  // finally {
+  //   if (client) await client.close();
+  // }
 });
 
 module.exports = router;

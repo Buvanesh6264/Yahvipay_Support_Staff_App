@@ -69,7 +69,7 @@ const ReturnParcelDetials = ({ route }) => {
   return (
     <SafeAreaView style={styles.safeContainer}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        {/* <Appbar.BackAction onPress={() => navigation.goBack()} /> */}
         <Appbar.Content title="Parcel Details" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 
@@ -99,7 +99,7 @@ const ReturnParcelDetials = ({ route }) => {
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="person" size={16} style={styles.icon} />
-              <Text style={styles.infoText}>Agent ID: {parcel.reciver} ({parcel.agentid || "N/A"})</Text>
+              <Text style={styles.infoText}>Agent ID: {parcel.sender} ({parcel.agentid || "N/A"})</Text>
             </View>
             <View style={styles.infoRow}>
               <MaterialIcons name="support-agent" size={16} style={styles.icon} />

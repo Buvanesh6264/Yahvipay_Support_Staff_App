@@ -72,7 +72,7 @@ export default function Scanner({ navigation }) {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate("Main")} />
+        {/* <Appbar.BackAction onPress={() => navigation.navigate("Main")} /> */}
         <Appbar.Content title="Scanner" titleStyle={styles.navbarTitle}/>
       </Appbar.Header>
       {isCameraActive && (

@@ -58,34 +58,90 @@ export default function UserTicketScreen() {
     navigation.navigate('ParcelRequestTicketDetail', { ticketNumber });
   };
 
-  const handleCreateParcel=(item)=>{
+  const handleCreateParcel = async (item) => {
     Alert.alert(
       "Create Parcel",
       "Are you sure you want to create parcel for this ticket?",
       [
+        { text: "Cancel", onPress: () => console.log("cancelled"), style: "cancel" },
         {
-          text:"Cancel",
-          onPress:()=>console.log("cancelled"),
-          style:"cancel"
-        }
-        ,{
-          text:"Ok",
-          onPress:()=>{
-            navigation.navigate("CreateParcel",{
-              agentid:item.agentid,
-              // acceso
-            })
-          }
-        }
-
+          text: "Ok",
+          onPress: async () => {
+            try {
+              const response = await fetch(`${apiUrl}/tickets/createParcelMessage`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ ticketNumber: item.ticketNumber }),
+              });
+  
+              const result = await response.json();
+              if (result.status === "success") {
+                console.log("Parcel message chat added");
+  
+                navigation.navigate("CreateParcel", {
+                  agentid: item.agentid,
+                  ticketNumber: item.ticketNumber,
+                });
+              } else {
+                Alert.alert("Error", result.message || "Failed to add chat message");
+              }
+            } catch (error) {
+              console.error("Error adding parcel chat message:", error);
+              Alert.alert("Error", "Something went wrong while sending parcel message");
+            }
+          },
+        },
       ]
-    )
-  }
+    );
+  };
+
+  const handleMarkCompleted = async (ticketNumber) => {
+    Alert.alert(
+      "Mark Completed",
+      "Are you sure you want to mark this ticket as Completed?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              const response = await fetch(`${apiUrl}/tickets/updatestatus`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  ticketNumber,
+                  status: "Completed",
+                }),
+              });
+  
+              const result = await response.json();
+              if (result.status === "success") {
+                Alert.alert("Success", "Ticket marked as Completed.");
+                fetchTickets(); 
+              } else {
+                Alert.alert("Error", result.message || "Failed to mark as completed.");
+              }
+            } catch (error) {
+              console.error("Error updating ticket status:", error);
+              Alert.alert("Error", "Something went wrong while updating status.");
+            }
+          },
+        },
+      ]
+    );
+  };
+  
 
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} color="white" />
+        {/* <Appbar.BackAction onPress={() => navigation.goBack()} color="white" /> */}
         <Appbar.Content title="MY Parcel Requests Tickets" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 
@@ -99,7 +155,15 @@ export default function UserTicketScreen() {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <Card style={styles.card}>
-              <Card.Title title={`Ticket Type: ${item.type}`} titleStyle={styles.cardTitle} />
+              <Card.Title
+                title={`Ticket Type: ${item.type}`}
+                titleStyle={styles.cardTitle}
+                right={() => (
+                  <TouchableOpacity onPress={() => navigation.navigate('Agentticketchat', { ticketNumber: item.ticketNumber })}>
+                    <Ionicons name="chatbubble-ellipses-outline" size={26} color="#007bff" style={{ marginRight: 10 }} />
+                  </TouchableOpacity>
+                )}
+              />
               <Card.Content>
                 <Text style={styles.detailText}><Text style={styles.bold}>Ticket No:</Text> {item.ticketNumber}</Text>
                 <Text style={styles.detailText}><Text style={styles.bold}>Agent ID:</Text> {item.agentid}</Text>
@@ -107,14 +171,19 @@ export default function UserTicketScreen() {
               </Card.Content>
               <View style={styles.buttonContainer}>
               {item.status?.toLowerCase() === 'asigned' && (
+                <>
                   <TouchableOpacity style={styles.generateButton} onPress={() => handleCreateParcel(item)}>
                     <Text style={styles.buttonText}>Create Parcel</Text>
                   </TouchableOpacity>
-                )}
-                <TouchableOpacity style={styles.viewButton} onPress={() => handleView(item.ticketNumber)}>
-                  <Text style={styles.buttonText}>View</Text>
-                </TouchableOpacity>
-              </View>
+                  <TouchableOpacity style={[styles.viewButton, { backgroundColor: '#6c757d' }]} onPress={() => handleMarkCompleted(item.ticketNumber)}>
+                    <Text style={styles.buttonText}>Completed</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              <TouchableOpacity style={styles.viewButton} onPress={() => handleView(item.ticketNumber)}>
+                <Text style={styles.buttonText}>View</Text>
+              </TouchableOpacity>
+            </View>
             </Card>
           )}
         />

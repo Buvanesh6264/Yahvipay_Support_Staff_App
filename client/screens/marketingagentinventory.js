@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, Alert, TouchableOpacity } from 'react-native';
 import { Appbar, Card } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
@@ -29,10 +29,27 @@ export default function AgentInventoryScreen() {
     }
   };
 
+  const handleCreateParcel = (item) => {
+    Alert.alert(
+      "Create Parcel",
+      "Are you sure you want to create a parcel for this agent?",
+      [
+        { text: "Cancel", onPress: () => console.log("Cancelled"), style: "cancel" },
+        {
+          text: "Ok", onPress: () => {
+            navigation.navigate("CreateParcel", {
+              agentid: item.id, 
+            });
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} color="white" />
+        {/* <Appbar.BackAction onPress={() => navigation.goBack()} color="white" /> */}
         <Appbar.Content title="Agent Inventories" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 
@@ -50,14 +67,21 @@ export default function AgentInventoryScreen() {
               <Card.Content>
                 <Text style={styles.detailText}><Text style={styles.bold}>Agent ID:</Text> {item.id}</Text>
                 <Text style={styles.detailText}><Text style={styles.bold}>Phone:</Text> {item.phone}</Text>
-                <Text style={styles.detailText}><Text style={styles.bold}>Available Devices:</Text> {item.deviceCount}</Text>
-                <Text style={styles.detailText}><Text style={styles.bold}>Accessories :</Text> {item.accessories.length}</Text>
+                <Text style={[styles.detailText, item.deviceCount < 10 && styles.redText]}>
+                  <Text style={styles.bold}>Available Devices:</Text> {item.deviceCount}
+                </Text>
+                <Text style={styles.detailText}><Text style={styles.bold}>Accessories:</Text> {item.accessories.length}</Text>
                 {item.accessories.map((acc, idx) => (
                   <Text key={idx} style={styles.detailText}>
                     • <Text style={styles.bold}>ID:</Text> {acc.device_id}  |  <Text style={styles.bold}>Qty:</Text> {acc.quantity}
                   </Text>
                 ))}
               </Card.Content>
+              <Card.Actions style={styles.cardActions}>
+                <TouchableOpacity onPress={() => handleCreateParcel(item)} style={styles.button}>
+                  <Text style={styles.buttonText}>Create Parcel</Text>
+                </TouchableOpacity>
+              </Card.Actions>
             </Card>
           )}
         />
@@ -83,4 +107,21 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center' },
   detailText: { fontSize: 16, marginTop: 5 },
   bold: { fontWeight: 'bold' },
+  redText: { color: 'red' },
+  cardActions: {
+    justifyContent: 'flex-end',
+    paddingHorizontal: 15,
+    paddingBottom: 10,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });

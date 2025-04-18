@@ -75,7 +75,7 @@ const ParcelDetail = ({ route }) => {
   return (
     <SafeAreaView style={styles.safeContainer}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        {/* <Appbar.BackAction onPress={() => navigation.goBack()} /> */}
         <Appbar.Content title="Parcel Details" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 

@@ -72,7 +72,7 @@ export default function AgentParcelScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        {/* <Appbar.BackAction onPress={() => navigation.goBack()} /> */}
         <Appbar.Content title="Agent Parcel Tracking" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
       <View style={styles.content}>

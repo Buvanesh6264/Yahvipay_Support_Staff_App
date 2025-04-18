@@ -15,6 +15,7 @@ export default function ParcelScreen() {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
+    console.log("status",statusFilter)
     fetchParcels();
   }, [statusFilter]);
 
@@ -136,6 +137,7 @@ export default function ParcelScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="white" />
         <Appbar.Content title="Parcel Inventory" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
           <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('CreateParcel')} />
@@ -159,12 +161,15 @@ export default function ParcelScreen() {
       <View style={styles.filterContainer}>
         <Text style={styles.filterLabel}>Filter by Status:</Text>
         <View style={styles.pickerContainer}>
+          <Text>{statusFilter}</Text>
           <Picker
+            
             selectedValue={statusFilter}
             onValueChange={(itemValue) => setStatusFilter(itemValue)}
             style={styles.picker}
+            dropdownIconColor="#333" 
           >
-            <Picker.Item label="All" value="" />
+            <Picker.Item  label="All" value="" />
             <Picker.Item label="Packed" value="packed" />
             <Picker.Item label="Sent" value="sent" />
             {/* <Picker.Item label="Received" value="received" /> */}

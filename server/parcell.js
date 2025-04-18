@@ -288,7 +288,7 @@ router.post("/Updateparcel", authenticatetoken, async (req, res) => {
       );
     }
 
-      const updatedParcel = await Parcel.findOne({ parcelNumber });
+      // const updatedParcel = await Parcel.findOne({ parcelNumber });
       // console.log("Updated Parcel:", updatedParcel);
 
       res.status(201).json({
@@ -386,7 +386,6 @@ router.get("/allparcels", async (req, res) => {
   }
 });
 
-
 // router.get("/parcelcount", async (req, res) => {
 //     try {
 //       // const supportid = req.user.supportid;
@@ -438,7 +437,7 @@ router.post("/agentid", async (req, res) => {
     const collection = db.collection(parcelCollection);
 
     
-    const parcels = await collection.find({ agentid, status: { $nin: ["delivered", "packed","received"] } }).toArray();
+    const parcels = await collection.find({ agentid,type:{$nin:["incoming"]}, status: { $nin: ["delivered", "packed","received"] } }).toArray();
 
     if (parcels.length === 0) {
       return res.status(404).json({
@@ -657,8 +656,17 @@ router.post("/updatestatus", async (req, res) => {
 
 router.post("/returnParcel", async (req, res) => {
   try {
-    const { agentid, sender, devices, accessories, supportid, pickupLocation, destination,supportname,parcelNumber } = req.body;
-
+    const { agent_id, sender, devices, accessories, suppid, pickloc, desloc,suppname,parcel_id } = req.body.data;
+    console.log("data",req.body)
+    console.log("data",req.body.data.accessories)
+    console.log("data",req.body.data.devices)
+    const agentid = agent_id;
+    // const devices =deviceid;
+    const supportid = suppid;
+    const supportname = suppname; 
+    const parcelNumber = parcel_id;
+    const destination = desloc;
+    const pickupLocation = pickloc;
     if (!agentid) {
       return res.status(400).json({
         status: "error",
@@ -667,13 +675,13 @@ router.post("/returnParcel", async (req, res) => {
       });
     }
     
-    if (!sender) {
-      return res.status(400).json({
-        status: "error",
-        message: "Sender is required",
-        status_code: 400,
-      });
-    }
+    // if (!sender) {
+    //   return res.status(400).json({
+    //     status: "error",
+    //     message: "Sender is required",
+    //     status_code: 400,
+    //   });
+    // }
     
     if (!pickupLocation) {
       return res.status(400).json({
@@ -861,7 +869,10 @@ router.get("/returnparcels", async (req, res) => {
     const collection = db.collection(parcelCollection);
 
 
-    const parcels = await collection.find({type :{ $ne: "outgoing" },status:{$ne:"received"} }).toArray();
+    const parcels = await collection.find(
+      {type :{ $ne: "outgoing" },
+      status:{$ne:"received"} 
+    }).toArray();
 // if(parcels.length ===  0){
 //   console.log("sucess")
 // }

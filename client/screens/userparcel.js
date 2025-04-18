@@ -161,6 +161,7 @@ export default function UserParcelScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="white" />
         <Appbar.Content title="My Parcels" titleStyle={styles.navbarTitle} />
         <TouchableOpacity style={styles.addButton}>
           <Ionicons name="add-outline" size={24} color="white" onPress={() => navigation.navigate('CreateParcel')} />

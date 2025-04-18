@@ -1,0 +1,20 @@
+[
+    {
+    "from":"id_1742404536258",
+    "to":"support",
+    "message":"parcel request from agent id_1742404536258",
+    "created at":"2025-04-17T14:37:52.123+00:00"
+},
+{
+    "from":"su1742487919208",
+    "to":"id_1742404536258",
+    "message":"parcel request has been assigned to su1742487919208",
+    "created at":"2025-04-17T14:40:55.123+00:00"
+},
+{
+    "from":"su1742487919208",
+    "to":"id_1742404536258",
+    "message":"parcel is getting created to you by su1742487919208",
+    "created at":"2025-04-17T14:45:55.123+00:00"
+}
+]

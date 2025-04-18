@@ -111,7 +111,7 @@ export default function ReturnParcel() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} color="black" />
+        {/* <Appbar.BackAction onPress={() => navigation.goBack()} color="black" /> */}
         <Appbar.Content title="Return Parcel Inventory" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
       {/* <TouchableOpacity

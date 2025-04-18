@@ -3,10 +3,12 @@ import { Text, View, StyleSheet, TextInput, TouchableOpacity ,Alert } from "reac
 import { CameraView, Camera } from "expo-camera";
 import { useFocusEffect } from "@react-navigation/native";
 
-export default function UpdateScanner({ navigation }) {
+export default function UpdateScanner({ navigation ,route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const { parcelNumber } = route.params || {}; 
   const [productId, setProductId] = useState("");
+  // const route = useRoute();
   const [isCameraActive, setIsCameraActive] = useState(true); 
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
@@ -16,7 +18,7 @@ export default function UpdateScanner({ navigation }) {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     };
-
+    console.log("number",parcelNumber)
     getCameraPermissions();
   }, []);
 
@@ -47,9 +49,13 @@ export default function UpdateScanner({ navigation }) {
     const result = await response.json();
     // console.log(result)
     if (response.ok && result.data) {
-      console.log(result.data.instock)
+      // console.log(result.data.instock)
       if (result.data.instock) {  
-          navigation.navigate("UpdateParcel", { scannedDevice: { id: data, status: result.data.instock ,type:"Accesory"} });
+        // console.log("number",parcelNumber)
+          navigation.navigate("UpdateParcel", { 
+            scannedDevice: { id: data, status: result.data.instock ,type:"Accesory"},
+            parcelNumber:parcelNumber,
+           });
       } else {
         Alert.alert("Error", `Accesory ${data} is not available.`);
       }

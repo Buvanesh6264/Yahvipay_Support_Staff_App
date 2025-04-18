@@ -103,7 +103,7 @@ export default function TicketScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} color="white" />
+        {/* <Appbar.BackAction onPress={() => navigation.goBack()} color="white" /> */}
         <Appbar.Content title="Tickets" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 
@@ -117,7 +117,15 @@ export default function TicketScreen() {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <Card style={styles.card}>
-              <Card.Title title={`Ticket Type: ${item.type}`} titleStyle={styles.cardTitle} />
+              <Card.Title 
+              title={`Ticket Type: ${item.type}`} 
+              titleStyle={styles.cardTitle} 
+              right={() => (
+                <TouchableOpacity onPress={() => navigation.navigate('Agentticketchat', { ticketNumber: item.ticketNumber })}>
+                  <Ionicons name="chatbubble-ellipses-outline" size={26} color="#007bff" style={{ marginRight: 10 }} />
+                </TouchableOpacity>
+              )}
+                              />
               <Card.Content>
                 <Text style={styles.detailText}><Text style={styles.bold}>Ticket No:</Text> {item.ticketNumber}</Text>
                 <Text style={styles.detailText}><Text style={styles.bold}>Agent ID:</Text> {item.agentid}</Text>

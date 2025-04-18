@@ -27,6 +27,7 @@ import TicketScreen from "./tickets";
 import ParcelRequesTicketDetail from "./parcelrequesdetials";
 import UserTicketScreen from "./userticketsparcelrequests";
 import AgentInventoryScreen from "./marketingagentinventory";
+import ChatScreen from "./ticketagenmag";
 
     const Stack = createStackNavigator();
 
@@ -59,6 +60,7 @@ import AgentInventoryScreen from "./marketingagentinventory";
         <Stack.Screen name="ParcelRequestTicketDetail" component={ParcelRequesTicketDetail} />
         <Stack.Screen name="Userticketscreen" component={UserTicketScreen} />
         <Stack.Screen name="AgentInventoryScreen" component={AgentInventoryScreen} />
+        <Stack.Screen name="Agentticketchat" component={ChatScreen} />
         </Stack.Navigator>
     );
     }

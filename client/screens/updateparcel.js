@@ -18,6 +18,12 @@ const UpdateParcelScreen = ({ route }) => {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
+    if (route.params?.parcelNumber) {
+      setParcelNumber(route.params.parcelNumber);
+    }
+  }, [route.params?.parcelNumber]);
+
+  useEffect(() => {
     const fetchStoredData = async () => {
       try {
         const savedToken = await AsyncStorage.getItem("token");
@@ -39,9 +45,10 @@ const UpdateParcelScreen = ({ route }) => {
         console.error("Error fetching stored data:", error);
       }
     };
+    console.log("number",parcelNumber)
     fetchStoredData();
   }, []);
-
+  
   useEffect(() => {
     const fetchParcelData = async () => {
       try {
@@ -114,6 +121,7 @@ const UpdateParcelScreen = ({ route }) => {
 
     setModalVisible(false);
   };
+
   const handleUpdateParcel = useCallback(async () => {
     if (!token) {
       Alert.alert("Error", "User not authenticated");
@@ -138,7 +146,7 @@ const UpdateParcelScreen = ({ route }) => {
       const result = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Parcel updated successfully");
-        navigation.goBack();
+        navigation.replace("Parcels");
       } else {
         Alert.alert("Error", result.message || "Failed to update parcel");
       }
@@ -181,7 +189,7 @@ const UpdateParcelScreen = ({ route }) => {
   />  
   )}
 
-  <Button title="Scan Device/Scan Accessory" onPress={() => navigation.navigate("UpdateQRScan")} />
+  <Button title="Scan Device/Scan Accessory" onPress={() => navigation.navigate("UpdateQRScan", { parcelNumber })} />
   <Text style={styles.sectionTitle}>Scanned Devices</Text>
   
   {devices.length === 0 ? (

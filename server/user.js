@@ -16,6 +16,7 @@ const client = new MongoClient(uri);
 function generateAccessToken(supportid) {
   return jwt.sign({ supportid }, JWT_SECRET, { expiresIn: "7d" });
 }
+
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; 

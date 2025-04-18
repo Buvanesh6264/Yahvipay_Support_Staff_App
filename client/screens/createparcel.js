@@ -46,7 +46,16 @@ const CreateParcelScreen = ({ route }) => {
     };
     fetchUserData();
   }, []);
-
+  useEffect(() => {
+    if (route.params?.agentid) {
+      setAgentid(route.params.agentid);
+      const selectedAgent = agentList.find(agent => agent.id === route.params.agentid);
+      if (selectedAgent) {
+        setReciver(selectedAgent.firstname);
+      }
+    }
+  }, [route.params?.agentid, agentList]);
+  
   useEffect(() => {
     const fetchAgents = async () => {
       try {
@@ -57,6 +66,14 @@ const CreateParcelScreen = ({ route }) => {
           const ids = data.map((agent) => agent);
           // console.log("ids",ids)
           setAgentList(ids);
+
+          if (route.params?.agentid) {
+            setAgentid(route.params.agentid);
+            const selectedAgent = ids.find(agent => agent.id === route.params.agentid);
+            if (selectedAgent) {
+              setReciver(selectedAgent.firstname);
+            }
+          }
         } else {
           Alert.alert("Error", "Failed to fetch agent list");
         }
@@ -138,7 +155,7 @@ const CreateParcelScreen = ({ route }) => {
         <Button
           title="Scan Device"
           color="#4CAF50"
-          onPress={() => navigation.navigate("ParcelQRScan")}
+          onPress={() => navigation.navigate("ParcelQRScan",{agentid})}
         />
 
         {devices.length > 0 && (

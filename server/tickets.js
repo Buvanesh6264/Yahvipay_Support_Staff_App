@@ -118,8 +118,16 @@ router.post("/requestParcel", async (req, res) => {
         devices: parseInt(devices),
         accessories,
         status,
-        supportid:"",
+        supportid: "",
         createdAt: new Date(),
+        chat: [
+          {
+            from: agent_id,
+            to: "support",
+            message: `parcel request from agent ${agent_id}`,
+            "createdAt": new Date()
+          }
+        ]
       });
   
       res.status(200).json({
@@ -146,7 +154,7 @@ router.get("/all",async (req,res)=>{
         const db = client.db(dbName);
         const tickets = db.collection(ticketsCollection);
   
-        const allTickets = await tickets.find({status: { $ne: "Asigned" }}).toArray();
+        const allTickets = await tickets.find({status: { $nin: ["Asigned","Completed"] }}).toArray();
   
         if (allTickets.length === 0) {
           return res.status(404).json({
@@ -223,7 +231,7 @@ router.get("/userparcels", authenticatetoken, async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection(ticketsCollection);
     
-    const parcels = await collection.find( {supportid} ).toArray();
+    const parcels = await collection.find( {supportid,status:{$ne:"Completed"}} ).toArray();
 
     res.status(200).json({
       status: "success",
@@ -276,6 +284,7 @@ router.post("/updatestatus", authenticatetoken , async (req, res) => {
         status_code: 404,
       });
     }
+    if(status ==="Asigned"){
     if(Ticket.status === "Asigned") {
       return res.status(400).json({
         status: "error",
@@ -285,7 +294,17 @@ router.post("/updatestatus", authenticatetoken , async (req, res) => {
     }
     await Device.updateOne(
       { ticketNumber },
-      { $set: { status: "Asigned", supportid }}
+      {
+        $set: { status: "Asigned", supportid },
+        $push: {
+          chat: {
+            from: supportid,
+            to: Ticket.agentid,
+            message: `parcel request has been assigned to ${supportid}`,
+            "createdAt": new Date()
+          }
+        }
+      }
     );
 
     res.json({
@@ -293,11 +312,146 @@ router.post("/updatestatus", authenticatetoken , async (req, res) => {
       message: "Ticket status updated to 'Asigned' successfully",
       status_code: 200,
     });
+  }
+  else if(status === "Completed"){
+    if(Ticket.status === "Completed") {
+      return res.status(400).json({
+        status: "error",
+        message: `Ticket with ID ${ticketNumber} is already Completed`,
+        status_code: 400,
+      });
+    }
+    await Device.updateOne(
+      { ticketNumber },
+      {
+        $set: { status: "Completed", supportid },
+        $push: {
+          chat: {
+            from: supportid,
+            to: Ticket.agentid,
+            message: `parcel request has been Completed By ${supportid}`,
+            "createdAt": new Date()
+          }
+        }
+      }
+    );
+
+    res.json({
+      status: "success",
+      message: "Ticket status updated to 'Completed' successfully",
+      status_code: 200,
+    });
+  }
   } catch (error) {
     res.status(500).json({
       status: "error",
       message: "Internal Server Error",
       error: error.message,
+    });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+router.post("/agentid", async (req, res) => {
+  try {
+    const { agentid } = req.body;
+    // console.log(agentid)
+    if (!agentid) {
+      return res.status(400).json({
+        status: "error",
+        message: "Missing agentid",
+        description: "Agent ID is required as a query parameter",
+        status_code: 400,
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(ticketsCollection);
+
+    
+    const parcels = await collection.find({ agentid }).toArray();
+
+    if (parcels.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "No parcels found",
+        description: "No parcels request found for the given agent ID",
+        status_code: 404,
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Parcels requests retrieved successfully",
+      data: parcels,
+      status_code: 200,
+    });
+  } catch (error) {
+    console.error("Fetch Parcel Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+      description: "Something went wrong on the server",
+      status_code: 500,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+router.post("/createParcelMessage", authenticatetoken, async (req, res) => {
+  try {
+    const supportid = req.user.supportid;
+    const { ticketNumber } = req.body;
+
+    if (!ticketNumber) {
+      return res.status(400).json({
+        status: "error",
+        message: "'ticketNumber' is required",
+        status_code: 400,
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const Tickets = db.collection(ticketsCollection);
+
+    const ticket = await Tickets.findOne({ ticketNumber });
+    if (!ticket) {
+      return res.status(404).json({
+        status: "error",
+        message: `Ticket ${ticketNumber} not found`,
+        status_code: 404,
+      });
+    }
+
+    await Tickets.updateOne(
+      { ticketNumber },
+      {
+        $push: {
+          chat: {
+            from: supportid,
+            to: ticket.agentid,
+            message: `parcel is getting created to you by ${supportid}`,
+            "createdAt": new Date()
+          }
+        }
+      }
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Chat message added to ticket",
+      status_code: 200
+    });
+  } catch (error) {
+    console.error("Create Parcel Message Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+      status_code: 500
     });
   } finally {
     if (client) await client.close();
