@@ -31,6 +31,7 @@ export default function UserTicketScreen() {
   useEffect(()=>{
     fetchTickets();
   },[token])
+  
   const fetchTickets = async () => {
     if (!token) return;
     try {

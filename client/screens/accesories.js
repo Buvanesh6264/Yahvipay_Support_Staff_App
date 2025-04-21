@@ -28,7 +28,7 @@ export default function AccessoriesScreen() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.navbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate('Main')} />
+        {/* <Appbar.BackAction onPress={() => navigation.navigate('Main')} /> */}
         <Appbar.Content title="Accessories" titleStyle={styles.navbarTitle} />
       </Appbar.Header>
 

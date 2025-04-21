@@ -14,7 +14,7 @@ export default function AgentInventoryScreen() {
 
   const fetchAgentInventories = async () => {
     try {
-      const response = await fetch('http://192.168.1.21:4000/agentdeviceinfo');
+      const response = await fetch('http://192.168.4.60:4000/agentdeviceinfo');
       const result = await response.json();
       if (Array.isArray(result?.data)) {
         setAgents(result.data);

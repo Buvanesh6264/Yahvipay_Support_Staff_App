@@ -59,9 +59,6 @@ export default function Scanner({ navigation }) {
     }
   };
   
-  
-  
-
   if (hasPermission === null) {
     return <Text>Requesting camera permission...</Text>;
   }

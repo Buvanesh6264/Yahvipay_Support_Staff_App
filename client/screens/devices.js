@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import { Appbar, Card, Text, Button } from 'react-native-paper';
-import { useNavigation,useRoute  } from '@react-navigation/native';
+import {useIsFocused, useNavigation,useRoute  } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DeviceScreen() {
+  const foces = useIsFocused()
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
@@ -19,13 +20,15 @@ export default function DeviceScreen() {
   }, [status]);
 
   useEffect(() => {
+    if(foces){
     if (route.params?.initialStatus) {
       setStatus(route.params.initialStatus);
     }
     else{
       setStatus('');
     }
-  }, [route.params?.initialStatus]);
+  }
+  }, [route.params?.initialStatus,foces]);
 
   const fetchDevices = async () => {
     try {

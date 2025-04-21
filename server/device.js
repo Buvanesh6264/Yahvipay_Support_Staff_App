@@ -101,6 +101,8 @@ router.post("/adddevice", authenticateToken, async (req, res) => {
       agentid: status === "available" ? "" : agentid,
       Inventory,
       type,
+      DamageMsg:"",
+      Used:0,
       user:false,
       activated:false,
       image: image || "",

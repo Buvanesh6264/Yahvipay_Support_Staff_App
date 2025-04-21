@@ -14,6 +14,7 @@ export default function UserParcelScreen() {
   const navigation = useNavigation();
   const [token,setToken] = useState("");
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+  
   useEffect(()=>{
     const fetchToken = async () => {
       try {

@@ -96,9 +96,6 @@ else{
   }
   };
   
-  
-  
-
   if (hasPermission === null) {
     return <Text>Requesting camera permission...</Text>;
   }
